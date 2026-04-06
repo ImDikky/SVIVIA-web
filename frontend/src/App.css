@@ -1,0 +1,197 @@
+/* GentleRain Inspired Styles */
+
+/* Navbar Minimalista */
+.navbar-minimal {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  padding: 2rem 5vw;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  mix-blend-mode: difference; /* Elegante truco para que se vea siempre sin fondo */
+}
+
+/* Tipografía Poética */
+.poetic-title-huge {
+  font-family: var(--font-serif);
+  font-size: 8vw;
+  font-weight: 400;
+  line-height: 1.1;
+  text-align: center;
+  letter-spacing: -0.02em;
+  margin-bottom: 2rem;
+}
+
+@media (max-width: 900px) {
+  .poetic-title-huge { font-size: 14vw; }
+}
+
+.poetic-subtitle {
+  font-family: var(--font-sans);
+  font-size: 1.25rem;
+  color: var(--text-muted);
+  text-align: center;
+  max-width: 600px;
+  line-height: 1.6;
+  font-weight: 300;
+}
+
+/* Alineaciones Centrales */
+.center-flow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  width: 100%;
+}
+
+/* Divisores muy sutiles */
+.thin-separator {
+  width: 1px;
+  height: 100px;
+  background: linear-gradient(180deg, transparent 0%, rgba(255,255,255,0.2) 50%, transparent 100%);
+  margin: 10vh auto;
+}
+
+/* Botones minimalistas */
+.btn-minimal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem 2rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  transition: all 0.4s ease;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--text-pure);
+}
+
+.btn-minimal:hover {
+  background: var(--text-pure);
+  color: var(--bg-pure);
+}
+
+/* Lista de Características estilo Poema */
+.poetic-features {
+  display: flex;
+  flex-direction: column;
+  gap: 15vh; /* Massive gaps for scroll isolation */
+  margin-top: 10vh;
+  width: 100%;
+}
+
+.poetic-feature-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.poetic-feature-title {
+  font-size: 4vw;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 900px) {
+  .poetic-feature-title { font-size: 8vw; }
+}
+
+/* Pricing Limpio (Sin Cajas) */
+.pricing-poetic {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 800px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  margin-top: 10vh;
+}
+
+.pricing-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 3rem 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05); /* Made more subtle */
+  transition: all 0.5s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.pricing-row::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: radial-gradient(circle at center, rgba(255,255,255,0.05) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+}
+
+.pricing-row:hover {
+  border-bottom-color: rgba(255,255,255,0.2);
+  transform: translateX(10px);
+}
+
+.pricing-row:hover::after {
+  opacity: 1;
+}
+
+.pricing-name {
+  font-family: var(--font-serif);
+  font-size: 2.5rem;
+}
+
+.pricing-details {
+  text-align: right;
+  font-family: var(--font-sans);
+  color: var(--text-muted);
+}
+
+.pricing-cost {
+  font-size: 1.5rem;
+  color: var(--text-pure);
+}
+
+@media (max-width: 600px) {
+  .pricing-row { flex-direction: column; align-items: flex-start; gap: 1rem; }
+  .pricing-details { text-align: left; }
+}
+
+/* HUD / MICRO GEOMETRY LAYERS (Subtle) */
+.hud-geometry {
+  position: fixed;
+  inset: 2rem;
+  pointer-events: none;
+  z-index: 50;
+  border: 1px solid rgba(255, 255, 255, 0.02);
+}
+
+.hud-cross {
+  position: absolute;
+  width: 15px;
+  height: 15px;
+  opacity: 0.1;
+}
+
+.hud-cross::before, .hud-cross::after {
+  content: '';
+  position: absolute;
+  background: #ffffff;
+}
+
+.hud-cross::before {
+  top: 50%; left: 0; right: 0; height: 1px; transform: translateY(-50%);
+}
+
+.hud-cross::after {
+  left: 50%; top: 0; bottom: 0; width: 1px; transform: translateX(-50%);
+}
+
+.hud-tl { top: -7px; left: -7px; }
+.hud-tr { top: -7px; right: -7px; }
+.hud-bl { bottom: -7px; left: -7px; }
+.hud-br { bottom: -7px; right: -7px; }
