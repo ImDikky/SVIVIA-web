@@ -4,7 +4,10 @@ import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import Monologue from './components/Monologue';
 import Features from './components/Features';
+import HorizontalShowcase from './components/HorizontalShowcase';
+import Camera3D from './components/Camera3D';
 import Pricing from './components/Pricing';
+import Download from './components/Download';
 import Footer from './components/Footer';
 import './App.css';
 
@@ -28,7 +31,10 @@ function App() {
         <Hero />
         <Monologue />
         <Features />
+        <HorizontalShowcase />
+        <Camera3D />
         <Pricing />
+        <Download />
         <Footer />
       </div>
     </ReactLenis>
