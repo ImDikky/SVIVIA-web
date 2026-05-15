@@ -9,11 +9,15 @@ import Camera3D from './components/Camera3D';
 import Pricing from './components/Pricing';
 import Download from './components/Download';
 import Footer from './components/Footer';
+import CustomCursor from './components/CustomCursor';
+import NeuralBackground from './components/NeuralBackground';
 import './App.css';
 
 function App() {
   return (
     <ReactLenis root options={{ lerp: 0.05 }}>
+      <NeuralBackground />
+      <CustomCursor />
       {/* CAPA 2: Micro-Geometría HUD sutil */}
       <div className="hud-geometry">
          <div className="hud-cross hud-tl"></div>

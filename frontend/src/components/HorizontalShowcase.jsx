@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { Eye, Server, Lock, Smartphone } from 'lucide-react';
+import DecryptedText from './DecryptedText';
 
 export default function HorizontalShowcase() {
   const targetRef = useRef(null);
@@ -12,18 +13,29 @@ export default function HorizontalShowcase() {
 
   // MAGIA: Transformamos el scroll Vertical (0 a 1) en movimiento Horizontal (X)
   // Como tenemos 4 tarjetas anchas, movemos el contenedor hacia la izquierda (-75%)
+  // Morphing de entrada: Sincronizado con la salida de Features
+  const entryScale = useTransform(scrollYProgress, [0, 0.2], [0.8, 1]);
+  const entryOpacity = useTransform(scrollYProgress, [0, 0.15], [0, 1]);
   const x = useTransform(scrollYProgress, [0, 1], ["0%", "-75%"]);
 
   return (
-    // section de 400vh: Significa que el usuario tendrá que hacer "4 pantallas" de scroll hacia abajo
     <section ref={targetRef} style={{ height: '400vh', position: 'relative', background: '#000' }}>
       
-      {/* Contenedor Sticky: Se queda pegado a la pantalla durante los 400vh */}
-      <div style={{ position: 'sticky', top: 0, height: '100vh', display: 'flex', alignItems: 'center', overflow: 'hidden' }}>
+      {/* Contenedor Sticky con Morphing de Entrada */}
+      <motion.div 
+        style={{ 
+          position: 'sticky', top: 0, height: '100vh', 
+          display: 'flex', alignItems: 'center', overflow: 'hidden',
+          scale: entryScale,
+          opacity: entryOpacity
+        }}
+      >
         
-        {/* Título fijo en la esquina superior izquierda */}
+        {/* Título fijo */}
         <div style={{ position: 'absolute', top: '15vh', left: '5vw', zIndex: 10 }}>
-            <h2 className="poetic-title-huge" style={{ fontSize: '3vw', color: '#fff' }}>El Flujo de Trabajo.</h2>
+            <h2 className="poetic-title-huge" style={{ fontSize: '3vw', color: '#fff' }}>
+              <DecryptedText text="El Flujo de Trabajo." />
+            </h2>
             <div style={{ width: '50px', height: '2px', background: '#4f46e5', marginTop: '1rem' }}></div>
         </div>
 
@@ -83,7 +95,7 @@ export default function HorizontalShowcase() {
           </div>
 
         </motion.div>
-      </div>
+      </motion.div>
     </section>
   );
 }

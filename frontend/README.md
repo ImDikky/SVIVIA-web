@@ -1,16 +1,47 @@
-# React + Vite
+# SVIVIA - Web Interface
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Este es el frontend de **SVIVIA**, una interfaz web de alto rendimiento diseñada para ofrecer una experiencia inmersiva y dinámica.
 
-Currently, two official plugins are available:
+## 🚀 Instalación y Ejecución
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Sigue estos pasos para configurar y correr el proyecto localmente:
 
-## React Compiler
+### 1. Clonar el repositorio
+Si aún no tienes el código, clona el repositorio:
+```bash
+git clone <url-del-repositorio>
+cd SVIVIA-web
+```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 2. Navegar a la carpeta del frontend
+Asegúrate de estar en el directorio correcto:
+```bash
+cd frontend
+```
 
-## Expanding the ESLint configuration
+### 3. Instalar las dependencias
+Utiliza npm para instalar todos los paquetes necesarios:
+```bash
+npm install
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### 4. Iniciar el servidor de desarrollo
+Lanza la aplicación en modo desarrollo:
+```bash
+npm run dev
+```
+Una vez iniciado, verás una URL (usualmente `http://localhost:5173`) en tu terminal. Ábrela en tu navegador para ver la página.
+
+## 🛠️ Otros Comandos
+
+- **Construir para producción:** `npm run build`
+- **Previsualizar la versión de producción:** `npm run preview`
+- **Linter:** `npm run lint`
+
+## 📦 Tecnologías Principales
+
+- **React + Vite**
+- **Three.js + React Three Fiber** (Para los componentes 3D)
+- **Framer Motion** (Para animaciones avanzadas)
+- **Lenis** (Para scroll suave)
+- **Vanilla CSS** (Styling de alta calidad)

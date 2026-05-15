@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { motion, useScroll, useTransform, useMotionValueEvent } from 'framer-motion';
+import { motion, useScroll, useTransform, useMotionValueEvent, useVelocity, useSpring } from 'framer-motion';
 
 // Sabemos que Ezgif nos generó 143 imágenes
 const FRAME_COUNT = 143;
@@ -41,29 +41,34 @@ export default function Hero() {
     offset: ["start start", "end end"]
   });
 
+  const scrollVelocity = useVelocity(scrollYProgress);
+  const smoothVelocity = useSpring(scrollVelocity, {
+    damping: 50,
+    stiffness: 400
+  });
+
+  // Convertimos la velocidad en un ángulo de inclinación (skew)
+  const skewX = useTransform(smoothVelocity, [-1, 1], [-20, 20]);
+
   const requestRef = useRef();
 
   // ==========================================
-  // EL SECRETO DE APPLE: CANVAS IMAGE SEQUENCE
+  // EL SECRETO DE APPLE: CANVAS IMAGE SEQUENCE + RGB SHIFT (Distorsión)
   // ==========================================
   useMotionValueEvent(scrollYProgress, "change", (latest) => {
     if (images.length === 0 || !canvasRef.current) return;
 
-    // Calculamos qué foto (del 0 al 142) debemos mostrar según tu scroll
     const frameIndex = Math.min(
       FRAME_COUNT - 1,
       Math.floor(latest * FRAME_COUNT)
     );
 
-    // Cancelamos el dibujo anterior si hiciste scroll muy rápido
     if (requestRef.current) cancelAnimationFrame(requestRef.current);
 
-    // Dibujamos la nueva foto en el Canvas (Súper rápido y sin lag)
     requestRef.current = requestAnimationFrame(() => {
       const img = images[frameIndex];
       if (img && img.complete) {
         const ctx = canvasRef.current.getContext('2d');
-        // Aseguramos que el lienzo tenga el tamaño exacto de la foto
         if (canvasRef.current.width !== img.width) {
           canvasRef.current.width = img.width;
           canvasRef.current.height = img.height;
@@ -73,10 +78,39 @@ export default function Hero() {
     });
   });
 
-  // Animaciones de texto originales
-  const textOpacity = useTransform(scrollYProgress, [0, 0.3], [1, 0]);
-  const textY = useTransform(scrollYProgress, [0, 0.3], [0, -150]);
-  const textScale = useTransform(scrollYProgress, [0, 0.3], [1, 0.9]);
+  // Animaciones de texto limpias y minimalistas
+  const textOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
+  const textY = useTransform(scrollYProgress, [0, 0.2], [0, -100]);
+  const textScale = useTransform(scrollYProgress, [0, 0.2], [1, 0.9]);
+
+  // ==========================================
+  // TIPOGRAFÍA REACTIVA: SPLIT & ANIMATE (Optimizado)
+  // ==========================================
+  const title1 = "Visión";
+  const title2 = "absoluta.";
+  
+  // Función para renderizar letras animadas - Optimizada para suavidad
+  const renderLetters = (text) => {
+    return text.split("").map((char, i) => (
+      <motion.span
+        key={i}
+        style={{ 
+          display: 'inline-block', 
+          whiteSpace: char === " " ? "pre" : "normal",
+          willChange: 'transform, opacity' // Optimizamos para la GPU
+        }}
+        initial={{ opacity: 0, y: '100%' }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ 
+          duration: 0.8, 
+          delay: 0.2 + i * 0.03, // Stagger más rápido
+          ease: [0.33, 1, 0.68, 1] // Ease Out Quart: súper suave
+        }}
+      >
+        {char}
+      </motion.span>
+    ));
+  };
 
   return (
     <section ref={containerRef} style={{ height: '300vh', position: 'relative', backgroundColor: '#000' }}>
@@ -96,25 +130,37 @@ export default function Hero() {
         
         <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle, transparent 30%, #000 100%)' }} />
 
-        {/* Textos */}
+        {/* Textos Reactivos (Limpios) */}
         <motion.div 
           style={{ 
             position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            opacity: textOpacity, y: textY, scale: textScale
+            opacity: textOpacity, y: textY, scale: textScale,
+            skewX: skewX // Inclinación por velocidad
           }}
-          initial={{ opacity: 0, filter: 'blur(20px)' }}
-          animate={{ opacity: 1, filter: 'blur(0px)' }}
-          transition={{ duration: 2, ease: "easeOut", delay: 0.5 }}
         >
-          <h1 className="poetic-title-huge" style={{ textAlign: 'center', fontSize: '8vw', lineHeight: 1.1 }}>
-            Visión <br />
-            <span style={{ fontStyle: 'italic', color: 'var(--text-muted)' }}>absoluta.</span>
+          <h1 className="poetic-title-huge" style={{ textAlign: 'center', fontSize: '8vw', lineHeight: 1.1, willChange: 'transform' }}>
+            <div style={{ overflow: 'hidden' }}>
+              {renderLetters(title1)}
+            </div>
+            <div style={{ overflow: 'hidden', fontStyle: 'italic', color: 'var(--text-muted)' }}>
+              {renderLetters(title2, true)}
+            </div>
           </h1>
-          <p className="poetic-subtitle" style={{ marginTop: '2rem', textAlign: 'center', maxWidth: '700px', fontSize: '1.4rem', textShadow: '0 4px 20px rgba(0,0,0,0.8)' }}>
+          
+          <motion.p 
+            className="poetic-subtitle" 
+            style={{ 
+              marginTop: '2rem', textAlign: 'center', maxWidth: '700px', fontSize: '1.4rem', 
+              textShadow: '0 4px 20px rgba(0,0,0,0.8)' 
+            }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1.5, delay: 1.5, ease: "easeOut" }}
+          >
             La inteligencia artificial no pertenece a la nube.
             <br/>Reclama tu privacidad. Transforma tus cámaras con Edge AI local.
-          </p>
+          </motion.p>
         </motion.div>
 
       </div>

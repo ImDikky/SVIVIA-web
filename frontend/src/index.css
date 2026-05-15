@@ -24,6 +24,11 @@ body {
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  cursor: none; /* Ocultamos el cursor por defecto */
+}
+
+a, button {
+  cursor: none; /* Aseguramos que en links y botones tampoco aparezca */
 }
 
 /* Removed Film Grain completely */
@@ -58,6 +63,35 @@ body {
   100% { transform: translate(-5vw, 5vh) scale(0.95); }
 }
 
+/* NOISE OVERLAY (Elite Texture) */
+body::after {
+  content: "";
+  position: fixed;
+  top: -150%;
+  left: -150%;
+  width: 300%;
+  height: 300%;
+  background-image: url("https://grainy-gradients.vercel.app/noise.svg");
+  opacity: 0.05;
+  pointer-events: none;
+  z-index: 9999;
+  animation: noise-anim 0.2s infinite;
+}
+
+@keyframes noise-anim {
+  0% { transform: translate(0, 0); }
+  10% { transform: translate(-5%, -5%); }
+  20% { transform: translate(-10%, 5%); }
+  30% { transform: translate(5%, -10%); }
+  40% { transform: translate(-5%, 15%); }
+  50% { transform: translate(-10%, 5%); }
+  60% { transform: translate(15%, 0); }
+  70% { transform: translate(0, 10%); }
+  80% { transform: translate(-15%, 0); }
+  90% { transform: translate(10%, 5%); }
+  100% { transform: translate(5%, 0); }
+}
+
 /* Typography Base Defaults */
 h1, h2, h3, h4 {
   font-family: var(--font-serif);
@@ -86,4 +120,99 @@ button {
   justify-content: center;
   padding: 20vh 0;
   position: relative;
+}
+/* =========================================
+   EFECTO ESCÁNER IA (PROPIEDAD G) - REFORZADO
+============================================= */
+.scanner-container {
+  position: relative;
+  cursor: crosshair;
+  transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.scanner-container:hover {
+  box-shadow: 0 0 100px rgba(79, 70, 229, 0.4);
+}
+
+.scan-line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(to right, transparent, #00f3ff, #fff, #00f3ff, transparent);
+  box-shadow: 0 0 20px #00f3ff, 0 0 40px rgba(0, 243, 255, 0.5);
+  z-index: 5;
+  animation: scanMove 3s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes scanMove {
+  0% { top: 0%; opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+
+.hud-corners {
+  position: absolute;
+  inset: 15px;
+  z-index: 6;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.4s ease;
+  transform: scale(1.1);
+}
+
+.scanner-container:hover .hud-corners {
+  opacity: 1;
+  visibility: visible;
+  transform: scale(1);
+}
+
+.corner {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  border-color: #00f3ff;
+  border-style: solid;
+  filter: drop-shadow(0 0 5px #00f3ff);
+}
+
+.corner.tl { top: 0; left: 0; border-width: 3px 0 0 3px; }
+.corner.tr { top: 0; right: 0; border-width: 3px 3px 0 0; }
+.corner.bl { bottom: 0; left: 0; border-width: 0 0 3px 3px; }
+.corner.br { bottom: 0; right: 0; border-width: 0 3px 3px 0; }
+
+.scan-status {
+  position: absolute;
+  bottom: 25px;
+  left: 25px;
+  font-family: 'Inter', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: #00f3ff;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(0,0,0,0.8);
+  padding: 8px 15px;
+  border: 1px solid rgba(0, 243, 255, 0.3);
+  border-radius: 2px;
+  text-shadow: 0 0 5px #00f3ff;
+}
+
+.scan-status .dot {
+  width: 8px;
+  height: 8px;
+  background: #00f3ff;
+  border-radius: 2px;
+  box-shadow: 0 0 10px #00f3ff;
+  animation: blink 0.8s ease infinite;
+}
+
+@keyframes blink {
+  50% { opacity: 0.1; transform: scale(0.8); }
 }

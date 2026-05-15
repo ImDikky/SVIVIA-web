@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
+import DecryptedText from './DecryptedText';
 // Importamos la imagen que acabas de subir
 import tommyImg from '../assets/tommy-lindo.jpeg';
 
@@ -16,84 +17,136 @@ export default function Features() {
   const imageScale = useTransform(scrollYProgress, [0, 1], [1, 1.2]);
   const imageFilter = useTransform(scrollYProgress, [0, 0.5, 1], ['brightness(1) blur(0px)', 'brightness(0.6) blur(2px)', 'brightness(0.3) blur(5px)']);
 
+  // Morphing de salida: Al final del scroll (0.8 a 1.0), la sección se "encoge" en un círculo
+  const clipPath = useTransform(
+    scrollYProgress,
+    [0, 0.8, 1],
+    [
+      "inset(0% 0% 0% 0% round 0px)",
+      "inset(0% 0% 0% 0% round 0px)",
+      "inset(15% 15% 15% 15% round 500px)"
+    ]
+  );
+
   return (
-    // La sección dura "300vh" (3 veces el tamaño de la pantalla) para dar tiempo a scrollear
-    <section ref={containerRef} style={{ position: 'relative', height: '300vh', backgroundColor: '#000' }}>
+    // Aumentamos ligeramente el height para que la fase de morphing sea suave
+    <section ref={containerRef} style={{ position: 'relative', height: '350vh', backgroundColor: '#000' }}>
       
-      {/* =========================================
-          EL TRUCO DE MAGIA: POSITION STICKY
-          Esto hace que el contenedor de la imagen se "pegue" a la pantalla 
-          y no se mueva mientras sigues bajando por los 300vh.
-      ============================================= */}
-      <div style={{ position: 'sticky', top: 0, height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+      {/* EL CONTENEDOR STICKY AHORA TIENE EL MASK MORPHING */}
+      <motion.div 
+        style={{ 
+          position: 'sticky', top: 0, height: '100vh', 
+          display: 'flex', alignItems: 'center', justifyContent: 'center', 
+          overflow: 'hidden',
+          clipPath: clipPath, // Aquí ocurre la magia del morphing
+          zIndex: 5
+        }}
+      >
         
-        {/* Imagen central con animaciones atadas a la rueda de tu ratón */}
+        {/* Imagen central con animaciones y EFECTO ESCÁNER */}
         <motion.div 
+           className="scanner-container"
            style={{ 
              width: '60vw', height: '70vh', 
              borderRadius: '32px', overflow: 'hidden',
              boxShadow: '0 0 80px rgba(79, 70, 229, 0.2)',
              scale: imageScale,
-             filter: imageFilter
+             filter: imageFilter,
+             position: 'relative'
            }}
+           whileHover="hover"
         >
-          <img src={tommyImg} alt="Tommy Lindo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          <img 
+            src={tommyImg} 
+            alt="Tommy Lindo" 
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          />
           
-          {/* Un viñeteado (sombras en los bordes) para que el texto por encima se lea bien */}
+          {/* LÍNEA DE ESCANEO (SCANLINE) */}
+          <div className="scan-line" />
+
+          {/* HUD DE ESQUINAS (Se activan en Hover) */}
+          <motion.div 
+            className="hud-corners"
+            variants={{
+              initial: { opacity: 0, scale: 1.1 },
+              hover: { opacity: 1, scale: 1 }
+            }}
+            initial="initial"
+          >
+            <div className="corner tl" />
+            <div className="corner tr" />
+            <div className="corner bl" />
+            <div className="corner br" />
+            
+            {/* Texto de estado IA */}
+            <div className="scan-status">
+               <span className="dot" /> ANALYZING_STREAM...
+            </div>
+          </motion.div>
+          
           <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle, transparent 40%, rgba(0,0,0,0.8) 100%)' }} />
         </motion.div>
-      </div>
+      </motion.div>
 
-      {/* =========================================
-          LOS TEXTOS EN FASES (Hacen scroll normal)
-          Como están posicionados relativamente y les quitamos el primer 100vh con marginTop,
-          van a pasar por encima de la imagen pegada.
-      ============================================= */}
-      <div style={{ position: 'relative', zIndex: 10, marginTop: '-100vh', paddingBottom: '20vh' }}>
+      {/* LOS TEXTOS EN FASES (Ahora con pointer-events: none para no tapar la imagen) */}
+      <div style={{ position: 'relative', zIndex: 10, marginTop: '-100vh', paddingBottom: '50vh', pointerEvents: 'none' }}>
         
-        {/* Fase 1: Aparece al principio, alineado a la izquierda */}
         <div style={{ height: '100vh', display: 'flex', alignItems: 'center', paddingLeft: '10vw' }}>
           <motion.div 
             initial={{ opacity: 0, x: -50 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: false, amount: 0.5 }}
             transition={{ duration: 0.8 }}
-            style={{ background: 'rgba(10,10,10,0.85)', padding: '3.5rem', borderRadius: '24px', backdropFilter: 'blur(15px)', border: '1px solid rgba(255,255,255,0.1)', maxWidth: '450px', boxShadow: '0 30px 60px rgba(0,0,0,0.5)' }}
+            style={{ 
+              background: 'rgba(10,10,10,0.85)', padding: '3.5rem', borderRadius: '24px', 
+              backdropFilter: 'blur(15px)', border: '1px solid rgba(255,255,255,0.1)', 
+              maxWidth: '450px', boxShadow: '0 30px 60px rgba(0,0,0,0.5)',
+              pointerEvents: 'auto' // Re-activamos el mouse para el texto
+            }}
           >
              <h3 className="poetic-feature-title" style={{ fontSize: '2.8rem', marginBottom: '1rem', background: 'linear-gradient(to right, #fff, #4f46e5)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', lineHeight: 1.2 }}>
-               Fase 1:<br/>Identificación.
+               <DecryptedText text="Fase 1: Identificación." />
              </h3>
              <p style={{ color: '#a3a3a3', fontSize: '1.2rem', lineHeight: 1.6 }}>El modelo YOLOv8 escanea la geometría en tiempo real. Cada píxel es analizado buscando amenazas potenciales. La luz y la sombra ya no son excusa.</p>
           </motion.div>
         </div>
 
-        {/* Fase 2: Aparece a la mitad del scroll, alineado a la derecha */}
         <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: '10vw' }}>
           <motion.div 
             initial={{ opacity: 0, x: 50 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: false, amount: 0.5 }}
             transition={{ duration: 0.8 }}
-            style={{ background: 'rgba(10,10,10,0.85)', padding: '3.5rem', borderRadius: '24px', backdropFilter: 'blur(15px)', border: '1px solid rgba(255,255,255,0.1)', maxWidth: '450px', boxShadow: '0 30px 60px rgba(0,0,0,0.5)' }}
+            style={{ 
+              background: 'rgba(10,10,10,0.85)', padding: '3.5rem', borderRadius: '24px', 
+              backdropFilter: 'blur(15px)', border: '1px solid rgba(255,255,255,0.1)', 
+              maxWidth: '450px', boxShadow: '0 30px 60px rgba(0,0,0,0.5)',
+              pointerEvents: 'auto'
+            }}
           >
              <h3 className="poetic-feature-title" style={{ fontSize: '2.8rem', marginBottom: '1rem', background: 'linear-gradient(to right, #fff, #4f46e5)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', lineHeight: 1.2 }}>
-               Fase 2:<br/>Motor Cero Nube.
+               <DecryptedText text="Fase 2: Motor Cero Nube." />
              </h3>
              <p style={{ color: '#a3a3a3', fontSize: '1.2rem', lineHeight: 1.6 }}>Tu imagen, como esta, no sale de tu red. El procesamiento neuronal ocurre en el hardware local garantizando una privacidad que ninguna empresa grande te ofrece.</p>
           </motion.div>
         </div>
 
-        {/* Fase 3: Aparece al final del scroll, centrado */}
         <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <motion.div 
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: false, amount: 0.5 }}
             transition={{ duration: 0.8 }}
-            style={{ background: 'rgba(10,10,10,0.85)', padding: '3.5rem', borderRadius: '24px', backdropFilter: 'blur(15px)', border: '1px solid rgba(255,255,255,0.1)', maxWidth: '550px', textAlign: 'center', boxShadow: '0 30px 60px rgba(0,0,0,0.5)' }}
+            style={{ 
+              background: 'rgba(10,10,10,0.85)', padding: '3.5rem', borderRadius: '24px', 
+              backdropFilter: 'blur(15px)', border: '1px solid rgba(255,255,255,0.1)', 
+              maxWidth: '550px', textAlign: 'center', boxShadow: '0 30px 60px rgba(0,0,0,0.5)',
+              pointerEvents: 'auto'
+            }}
           >
              <h3 className="poetic-feature-title" style={{ fontSize: '2.8rem', marginBottom: '1rem', background: 'linear-gradient(to right, #fff, #4f46e5)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', lineHeight: 1.2 }}>
-               Fase 3:<br/>Evidencia Directa.
+               <DecryptedText text="Fase 3: Evidencia Directa." />
              </h3>
              <p style={{ color: '#a3a3a3', fontSize: '1.2rem', lineHeight: 1.6 }}>En caso de detección positiva, los frames en alta definición se encriptan y se envían de forma nativa a tu dispositivo a través de la integración con Telegram.</p>
           </motion.div>
