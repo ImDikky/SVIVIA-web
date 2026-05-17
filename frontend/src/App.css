@@ -195,3 +195,333 @@
 .hud-tr { top: -7px; right: -7px; }
 .hud-bl { bottom: -7px; left: -7px; }
 .hud-br { bottom: -7px; right: -7px; }
+
+
+/* =========================================
+   THE MONOLITH — Scrollytelling Dashboard
+   Technique: sticky 400vh scroll container
+   El panel sube desde abajo, los HUD se revelan
+   en secuencia anclados al scroll.
+============================================= */
+
+/* ── Scroll Container (da la altura para el sticky) */
+.monolith-section {
+  position: relative;
+  height: 400vh;
+  z-index: 10;
+}
+
+/* ── Sticky Viewport */
+.monolith-sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  width: 100%;
+  /* Sin overflow:hidden — causa que el título se recorte */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Título de entrada — centrado con flex para no interferir con Framer Motion */
+.monolith-eyebrow {
+  position: absolute;
+  inset: 0;               /* ocupa todo el sticky */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0 8vw;
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* ── Clip wrapper: overflow:hidden SOLO para el panel, no afecta al eyebrow */
+.monolith-clip {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none; /* el panel hereda pointer-events si se necesita */
+}
+
+/* Título controlado para no desbordar */
+.monolith-title {
+  font-family: var(--font-serif);
+  font-size: clamp(3rem, 7vw, 7rem);
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--text-pure);
+  margin-bottom: 1.5rem;
+}
+
+/* ── El Panel Principal */
+.monolith-panel {
+  position: absolute;
+  bottom: 0;
+  left: 2.5vw;   /* (100vw - 95vw) / 2 = 2.5vw — sin conflicto con Framer Motion */
+  width: 95vw;
+  height: 85vh;
+  border-radius: 16px 16px 0 0;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-bottom: none;
+  box-shadow: 0 -40px 100px rgba(0, 0, 0, 0.8);
+  z-index: 1;
+}
+
+/* ── Video dentro del panel */
+.monolith-video-clip {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.monolith-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: grayscale(100%) contrast(1.1) brightness(0.55);
+  transform-origin: center center;
+}
+
+/* Velo que da profundidad y legibilidad a los HUDs */
+.monolith-veil {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(0,0,0,0.5) 0%, transparent 30%, transparent 60%, rgba(0,0,0,0.7) 100%),
+    linear-gradient(90deg, rgba(0,0,0,0.4) 0%, transparent 25%, transparent 75%, rgba(0,0,0,0.4) 100%);
+  pointer-events: none;
+}
+
+/* ── HUD LAYER 1: Etiqueta de cámara — Top Left */
+.hud-camera-label {
+  position: absolute;
+  top: 2rem;
+  left: 2.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  color: rgba(255,255,255,0.9);
+  text-transform: uppercase;
+}
+
+.hud-cam-id { font-weight: 700; }
+.hud-cam-divider { color: rgba(255,255,255,0.2); }
+.hud-cam-loc { color: rgba(255,255,255,0.55); font-weight: 300; }
+
+.hud-rec-dot {
+  width: 6px;
+  height: 6px;
+  background: #fff;
+  border-radius: 50%;
+  margin-left: 0.5rem;
+  animation: recPulse 2s ease-in-out infinite;
+}
+
+@keyframes recPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.2; }
+}
+
+.hud-rec-text {
+  font-size: 0.65rem;
+  color: rgba(255,255,255,0.5);
+}
+
+/* ── HUD LAYER 1: Stats — Top Right */
+.hud-stats-corner {
+  position: absolute;
+  top: 2rem;
+  right: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: flex-end;
+}
+
+.hud-stat-row {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+}
+
+.hud-stat-label {
+  font-family: monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  color: rgba(255,255,255,0.35);
+  text-transform: uppercase;
+}
+
+.hud-stat-value {
+  font-family: monospace;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.95);
+  letter-spacing: 0.05em;
+}
+
+/* ── HUD LAYER 2: Stat Central Masiva */
+.hud-central-stat {
+  position: absolute;
+  bottom: 30%;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  pointer-events: none;
+}
+
+.hud-big-number {
+  font-family: var(--font-serif);
+  font-size: clamp(5rem, 12vw, 10rem);
+  font-weight: 400;
+  color: rgba(255,255,255,0.95);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  display: inline;
+}
+
+.hud-big-unit {
+  font-family: var(--font-serif);
+  font-size: clamp(2rem, 5vw, 4rem);
+  color: rgba(255,255,255,0.5);
+  vertical-align: super;
+}
+
+.hud-big-label {
+  display: block;
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  font-weight: 300;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.4);
+  margin-top: 0.5rem;
+}
+
+/* ── Bounding Boxes elegantes */
+.hud-elegant-box {
+  position: absolute;
+  border: 1px solid rgba(255,255,255,0.45);
+  pointer-events: none;
+}
+
+.hud-box-a {
+  top: 18%;
+  left: 28%;
+  width: 14%;
+  height: 38%;
+}
+
+.hud-box-b {
+  top: 40%;
+  left: 58%;
+  width: 9%;
+  height: 25%;
+}
+
+.hud-box-tag {
+  position: absolute;
+  top: -1.4rem;
+  left: 0;
+  font-family: monospace;
+  font-size: 0.6rem;
+  color: rgba(255,255,255,0.7);
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+/* ── HUD LAYER 3: Log lateral izquierdo */
+.hud-log-lateral {
+  position: absolute;
+  bottom: 2.5rem;
+  left: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  pointer-events: none;
+}
+
+.hud-log-title {
+  font-family: monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  color: rgba(255,255,255,0.25);
+  text-transform: uppercase;
+  margin-bottom: 0.2rem;
+}
+
+.hud-log-entry {
+  display: flex;
+  gap: 1rem;
+  align-items: baseline;
+}
+
+.hud-log-time {
+  font-family: monospace;
+  font-size: 0.65rem;
+  color: rgba(255,255,255,0.25);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.hud-log-msg {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 300;
+  color: rgba(255,255,255,0.7);
+  line-height: 1.3;
+}
+
+/* ── HUD LAYER 4: Status Bar inferior */
+.hud-status-bar {
+  position: absolute;
+  bottom: 2.5rem;
+  right: 2.5rem;
+  left: calc(2.5rem + 280px); /* no solapar el log */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid rgba(255,255,255,0.07);
+  padding-top: 1rem;
+  pointer-events: none;
+}
+
+.hud-status-left,
+.hud-status-right {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: monospace;
+  font-size: 0.65rem;
+  color: rgba(255,255,255,0.3);
+  letter-spacing: 0.08em;
+}
+
+.hud-status-dot {
+  width: 5px;
+  height: 5px;
+  background: rgba(255,255,255,0.8);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.hud-status-sep {
+  opacity: 0.2;
+}
+
+/* ── Responsive */
+@media (max-width: 900px) {
+  .monolith-section { height: 300vh; }
+  .monolith-panel { width: 100vw; left: 0; height: 80vh; border-radius: 12px 12px 0 0; }
+  .hud-big-number { font-size: 18vw; }
+  .hud-log-lateral { display: none; }
+  .hud-status-bar { left: 2.5rem; }
+  .hud-box-a, .hud-box-b { display: none; }
+}

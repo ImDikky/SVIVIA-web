@@ -4,7 +4,10 @@ import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import Monologue from './components/Monologue';
 import Features from './components/Features';
+import DataTunnel from './components/DataTunnel';
 import HorizontalShowcase from './components/HorizontalShowcase';
+import Dashboard from './components/Dashboard';
+
 import Camera3D from './components/Camera3D';
 import Pricing from './components/Pricing';
 import Download from './components/Download';
@@ -35,9 +38,10 @@ function App() {
         <Hero />
         <Monologue />
         <Features />
+        <DataTunnel />
         <HorizontalShowcase />
+        <Dashboard />
         <Camera3D />
-        <Pricing />
         <Download />
         <Footer />
       </div>

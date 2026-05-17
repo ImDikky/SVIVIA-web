@@ -5,7 +5,7 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import { MousePointer2 } from 'lucide-react';
 
 // ==========================================
-// EL COMPONENTE DEL MODELO 3D
+// EL COMPONENTE DEL MODELO 3D (REVERTIDO)
 // ==========================================
 function Model({ scrollYProgress }) {
   const { scene } = useGLTF('/camera.glb');
