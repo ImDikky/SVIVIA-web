@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, lazy, Suspense } from 'react';
 import { ReactLenis } from 'lenis/react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
@@ -7,45 +7,66 @@ import Features from './components/Features';
 import DataTunnel from './components/DataTunnel';
 import HorizontalShowcase from './components/HorizontalShowcase';
 import Dashboard from './components/Dashboard';
-
-import Camera3D from './components/Camera3D';
 import Pricing from './components/Pricing';
 import Download from './components/Download';
 import Footer from './components/Footer';
 import CustomCursor from './components/CustomCursor';
 import NeuralBackground from './components/NeuralBackground';
+import LoadingScreen from './components/LoadingScreen';
 import './App.css';
 
-function App() {
-  return (
-    <ReactLenis root options={{ lerp: 0.05 }}>
-      <NeuralBackground />
-      <CustomCursor />
-      {/* CAPA 2: Micro-Geometría HUD sutil */}
-      <div className="hud-geometry">
-         <div className="hud-cross hud-tl"></div>
-         <div className="hud-cross hud-tr"></div>
-         <div className="hud-cross hud-bl"></div>
-         <div className="hud-cross hud-br"></div>
-      </div>
+// Heavy 3D components — lazy loaded so they initialize during the loading screen
+const Camera3D       = lazy(() => import('./components/Camera3D'));
+const ModelVisualizer = lazy(() => import('./components/ModelVisualizer'));
 
-      <div className="app-container">
-        {/* Orbe orgánico sutil para cumplir la cuota estética GentleRain/Aurora */}
-        <div className="ambient-glow"></div>
-        <div className="ambient-glow secondary"></div>
-        
-        <Navbar />
-        <Hero />
-        <Monologue />
-        <Features />
-        <DataTunnel />
-        <HorizontalShowcase />
-        <Dashboard />
-        <Camera3D />
-        <Download />
-        <Footer />
-      </div>
-    </ReactLenis>
+function App() {
+  const [loaded, setLoaded] = useState(false);
+
+  return (
+    <>
+      {/* Loading screen — always mounted first, sits above everything */}
+      <LoadingScreen onComplete={() => setLoaded(true)} />
+
+      {/* Main app — rendered immediately but hidden until loader exits */}
+      <ReactLenis root options={{ lerp: 0.05 }}>
+        <NeuralBackground />
+        <CustomCursor />
+        {/* CAPA 2: Micro-Geometría HUD sutil */}
+        <div className="hud-geometry">
+           <div className="hud-cross hud-tl"></div>
+           <div className="hud-cross hud-tr"></div>
+           <div className="hud-cross hud-bl"></div>
+           <div className="hud-cross hud-br"></div>
+        </div>
+
+        <div className="app-container">
+          {/* Orbe orgánico sutil para cumplir la cuota estética GentleRain/Aurora */}
+          <div className="ambient-glow"></div>
+          <div className="ambient-glow secondary"></div>
+          
+          <Navbar />
+          <Hero />
+          <Monologue />
+          <Features />
+          <DataTunnel />
+          <HorizontalShowcase />
+          <Dashboard />
+
+          {/* Heavy 3D — wrapped in Suspense, pre-initialized while loader is shown */}
+          <Suspense fallback={<div style={{ height: '200vh', background: '#000' }} />}>
+            <Camera3D />
+          </Suspense>
+
+          <Suspense fallback={<div style={{ height: '100vh', background: '#000' }} />}>
+            <ModelVisualizer />
+          </Suspense>
+
+          <Pricing />
+          <Download />
+          <Footer />
+        </div>
+      </ReactLenis>
+    </>
   );
 }
 

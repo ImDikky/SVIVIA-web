@@ -1,55 +1,138 @@
-import React, { useRef } from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import React, { useRef, useState, useEffect } from 'react';
+import { motion, useScroll, useTransform, useMotionValue, useSpring } from 'framer-motion';
 import videoSrc from '../assets/videovigilancia-deteccion.mp4';
 
-// ─────────────────────────────────────────────
-// THE MONOLITH + SEQUENCE DASHBOARD
-// Técnica: sticky scroll container (400vh)
-// El panel sube desde abajo y los HUD se revelan
-// en secuencia a medida que el usuario baja.
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// COMPONENTE SECUNDARIO DE TELEMETRÍA (OPTIMIZADO PARA RENDIMIENTO)
+// Aísla los re-renderizados frecuentes del cronómetro en este nodo.
+// De esta forma, el Dashboard principal y Framer Motion no sufren stutters.
+// ─────────────────────────────────────────────────────────────
+function TelemetryDisplay() {
+  const [stats, setStats] = useState({
+    fps: 60,
+    cpu: 76,
+    gpuTemp: 62.4,
+  });
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setStats({
+        fps: Math.floor(60 + (Math.random() * 4 - 2)), // 58 - 62
+        cpu: Math.floor(75 + (Math.random() * 6 - 3)), // 72 - 78
+        gpuTemp: parseFloat((62.0 + Math.random() * 1.5).toFixed(1)), // 62.0 - 63.5
+      });
+    }, 600); // Frecuencia de actualización más sutil
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="hud-diag-right">
+      <div className="telemetry-badge">
+        <span className="telemetry-lbl">CPU</span>
+        <span className="telemetry-val">{stats.cpu}%</span>
+      </div>
+      <div className="telemetry-badge">
+        <span className="telemetry-lbl">FPS</span>
+        <span className="telemetry-val">{stats.fps}</span>
+      </div>
+      <div className="telemetry-badge">
+        <span className="telemetry-lbl">GPU TEMP</span>
+        <span className="telemetry-val">{stats.gpuTemp}°C</span>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// THE INTERACTIVE NEURAL DASHBOARD (AWWWARDS OPTIMIZED)
+// ─────────────────────────────────────────────────────────────
 export default function Dashboard() {
   const sectionRef = useRef(null);
+  const containerRef = useRef(null);
 
-  // Ancla todo al scroll de esta sección (400vh)
-  // Sin useSpring → respuesta inmediata y sin lag
+  // ── 1. Modos Tácticos e Interacción
+  const [gridActive, setGridActive] = useState(false);
+  const [nightVision, setNightVision] = useState(false);
+  const [camChannel, setCamChannel] = useState('CAM_01');
+  const [crtFlash, setCrtFlash] = useState(false);
+
+  const changeCamera = (camName) => {
+    if (camName === camChannel) return;
+    setCrtFlash(true);
+    setCamChannel(camName);
+    setTimeout(() => setCrtFlash(false), 200);
+  };
+
+  // ── 2. Rastreo del Cursor (AI User Tracking)
+  // Sin re-renders de React: usamos MotionValues y Spring Physics directamente en estilos del DOM
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+  
+  // Resortes ligeros pero fluidos
+  const springConfig = { damping: 30, stiffness: 150, mass: 0.5 };
+  const springX = useSpring(mouseX, springConfig);
+  const springY = useSpring(mouseY, springConfig);
+  
+  const [isHovered, setIsHovered] = useState(false);
+  const rectRef = useRef(null);
+
+  // Recalcular el rect solo cuando sea necesario para evitar layout thrashing
+  const updateRect = () => {
+    if (containerRef.current) {
+      rectRef.current = containerRef.current.getBoundingClientRect();
+    }
+  };
+
+  useEffect(() => {
+    window.addEventListener('resize', updateRect);
+    return () => window.removeEventListener('resize', updateRect);
+  }, []);
+
+  const handleMouseEnter = () => {
+    setIsHovered(true);
+    updateRect();
+  };
+
+  const handleMouseMove = (e) => {
+    if (!rectRef.current) {
+      updateRect();
+    }
+    if (!rectRef.current) return;
+    const rect = rectRef.current;
+    mouseX.set(e.clientX - rect.left);
+    mouseY.set(e.clientY - rect.top);
+  };
+
+  // ── 3. Secuencia Coreográfica con Scroll (useScroll)
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ['start start', 'end end'],
   });
 
-  // ── Panel: sube desde abajo (0→22%)
-  const panelY     = useTransform(scrollYProgress, [0, 0.22], ['100vh', '0vh']);
-  const panelScale = useTransform(scrollYProgress, [0, 0.22], [0.97, 1]);
+  // Título Intro (0% - 20%)
+  const titleOpacity = useTransform(scrollYProgress, [0, 0.05, 0.16, 0.22], [1, 1, 0, 0]);
+  const titleY       = useTransform(scrollYProgress, [0, 0.22], [0, -35]);
 
-  // ── Video: zoom-out parallax suave
+  // Panel Monolito: Sube y se escala
+  const panelY     = useTransform(scrollYProgress, [0, 0.22, 0.84, 0.95], ['100%', '0%', '0%', '-10%']);
+  const panelScale = useTransform(scrollYProgress, [0, 0.22, 0.84, 0.95], [0.96, 1, 1, 0.94]);
+  const panelAlpha = useTransform(scrollYProgress, [0.84, 0.95], [1, 0]);
+
+  // Deslizamientos Coreografiados de los Paneles HUD (Boot-up effect)
+  const hudOpacity = useTransform(scrollYProgress, [0.20, 0.26, 0.84, 0.92], [0, 1, 1, 0]);
+  const topPanelY  = useTransform(scrollYProgress, [0.20, 0.28, 0.82, 0.88], [-50, 0, 0, -50]);
+  const leftPanelX = useTransform(scrollYProgress, [0.21, 0.29, 0.82, 0.88], [-70, 0, 0, -70]);
+  const rightPanelX= useTransform(scrollYProgress, [0.22, 0.30, 0.82, 0.88], [70, 0, 0, 70]);
+  const bottomPanelY= useTransform(scrollYProgress, [0.23, 0.31, 0.82, 0.88], [60, 0, 0, 60]);
+
+  // Video Parallax
   const videoScale = useTransform(scrollYProgress, [0, 0.35], [1.12, 1]);
-
-  // ── Título de entrada: aparece → se va antes de que suba el panel
-  const titleOpacity = useTransform(scrollYProgress, [0, 0.06, 0.14, 0.20], [1, 1, 0, 0]);
-  const titleY       = useTransform(scrollYProgress, [0, 0.20], [0, -30]);
-
-  // ── HUD 1 — Cámara + Stats (aparece al llegar el panel, sale al 44%)
-  const hud1Opacity = useTransform(scrollYProgress, [0.22, 0.30, 0.40, 0.46], [0, 1, 1, 0]);
-  const hud1Y       = useTransform(scrollYProgress, [0.22, 0.30], [16, 0]);
-
-  // ── HUD 2 — Número central masivo (entra en 46%, sale en 68%)
-  const hud2Opacity = useTransform(scrollYProgress, [0.46, 0.54, 0.62, 0.68], [0, 1, 1, 0]);
-  const hud2Y       = useTransform(scrollYProgress, [0.46, 0.54], [24, 0]);
-
-  // ── HUD 3 — Log lateral (entra en 68%, sale en 84%)
-  const hud3Opacity = useTransform(scrollYProgress, [0.68, 0.74, 0.80, 0.86], [0, 1, 1, 0]);
-  const hud3X       = useTransform(scrollYProgress, [0.68, 0.74], [-16, 0]);
-
-  // ── HUD 4 — Status bar (entra en 86%, sale en 96%)
-  const hud4Opacity = useTransform(scrollYProgress, [0.86, 0.90, 0.93, 0.97], [0, 1, 1, 0]);
-  const hud4Y       = useTransform(scrollYProgress, [0.86, 0.90], [8, 0]);
 
   return (
     <section ref={sectionRef} className="monolith-section">
       <div className="monolith-sticky">
 
-        {/* ── TÍTULO — centrado con flex, sin transform que FM pueda pisar */}
+        {/* ── TÍTULO DE ENTRADA (Cinematic Intro) */}
         <motion.div
           className="monolith-eyebrow"
           style={{ opacity: titleOpacity, y: titleY }}
@@ -60,114 +143,179 @@ export default function Dashboard() {
           </p>
         </motion.div>
 
-        {/* ── CLIP WRAPPER: solo este div tiene overflow:hidden */}
-        {/* Así el panel se recorta correctamente sin afectar al título */}
+        {/* ── DASHBOARD MOCKUP SHELL (El Monolito) */}
         <div className="monolith-clip">
           <motion.div
-            className="monolith-panel"
-            style={{ y: panelY, scale: panelScale }}
+            ref={containerRef}
+            className={`monolith-panel ${nightVision ? 'night-vision-mode' : ''}`}
+            style={{ y: panelY, scale: panelScale, opacity: panelAlpha }}
+            onMouseMove={handleMouseMove}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={() => setIsHovered(false)}
           >
-          {/* VIDEO con zoom-out parallax */}
-          <div className="monolith-video-clip">
-            <motion.video
-              src={videoSrc}
-              autoPlay loop muted playsInline
-              className="monolith-video"
-              style={{ scale: videoScale }}
-            />
-            {/* Velo negro sobre el video — da profundidad */}
-            <div className="monolith-veil" />
-          </div>
+            {/* Contenedor de Video principal */}
+            <div className="monolith-video-clip">
+              <motion.video
+                src={videoSrc}
+                autoPlay loop muted playsInline
+                className="monolith-video"
+                style={{ scale: videoScale }}
+              />
+              {/* Velo translúcido con gradientes de viñeta */}
+              <div className="monolith-veil" />
+              
+              {/* Grilla Cibernética Digital Táctica */}
+              <div className={`tactical-grid-overlay ${gridActive ? 'active' : ''}`} />
 
-          {/* ── HUD LAYER 1: Header — Etiqueta de cámara (Top-Left) */}
-          <motion.div
-            className="hud-camera-label"
-            style={{ opacity: hud1Opacity, y: hud1Y }}
-          >
-            <span className="hud-cam-id">CAM_01</span>
-            <span className="hud-cam-divider">/</span>
-            <span className="hud-cam-loc">RECEPTION — SECTOR 4</span>
-            <span className="hud-rec-dot" />
-            <span className="hud-rec-text">REC</span>
-          </motion.div>
-
-          {/* ── HUD LAYER 1: Stats — Top-Right */}
-          <motion.div
-            className="hud-stats-corner"
-            style={{ opacity: hud1Opacity, y: hud1Y }}
-          >
-            <div className="hud-stat-row">
-              <span className="hud-stat-label">INFERENCE</span>
-              <span className="hud-stat-value">12 ms</span>
+              {/* Tinte Verde de Visión Nocturna sobre el video */}
+              <div className={`night-vision-video-tint ${nightVision ? 'active' : ''}`} />
             </div>
-            <div className="hud-stat-row">
-              <span className="hud-stat-label">ACCURACY</span>
-              <span className="hud-stat-value">99.8%</span>
-            </div>
-            <div className="hud-stat-row">
-              <span className="hud-stat-label">STREAMS</span>
-              <span className="hud-stat-value">08</span>
-            </div>
-          </motion.div>
 
-          {/* ── HUD LAYER 2: Stat central masiva */}
-          <motion.div
-            className="hud-central-stat"
-            style={{ opacity: hud2Opacity, y: hud2Y }}
-          >
-            <span className="hud-big-number">98.4</span>
-            <span className="hud-big-unit">%</span>
-            <span className="hud-big-label">Detection Confidence</span>
-          </motion.div>
+            {/* ── CRT INTERFERENCE FLASH EFFECT */}
+            {crtFlash && <div className="crt-flash-overlay" />}
 
-          {/* ── Bounding box elegante (aparece con HUD 2) */}
-          <motion.div
-            className="hud-elegant-box hud-box-a"
-            style={{ opacity: hud2Opacity }}
-          >
-            <span className="hud-box-tag">ID-0041 · Human</span>
-          </motion.div>
-          <motion.div
-            className="hud-elegant-box hud-box-b"
-            style={{ opacity: hud2Opacity }}
-          />
+            {/* ── AI USER TRACKING MODE (Cursor Bounding Box) */}
+            {isHovered && (
+              <motion.div
+                className="hud-user-box"
+                style={{
+                  x: springX,
+                  y: springY,
+                }}
+              >
+                {/* Cuatro brackets vectoriales en las esquinas */}
+                <div className="bracket-corner bracket-tl" />
+                <div className="bracket-corner bracket-tr" />
+                <div className="bracket-corner bracket-bl" />
+                <div className="bracket-corner bracket-br" />
+                
+                {/* Datos técnicos estáticos pero responsivos para rendimiento óptimo */}
+                <div className="hud-user-tag">
+                  <span className="hud-user-lock">LOCK</span>
+                  <span className="hud-user-subj">SUBJECT: VISITOR // CONF: 99.8%</span>
+                </div>
+              </motion.div>
+            )}
 
-          {/* ── HUD LAYER 3: Log lateral izquierdo */}
-          <motion.div
-            className="hud-log-lateral"
-            style={{ opacity: hud3Opacity, x: hud3X }}
-          >
-            <span className="hud-log-title">ACTIVITY FEED</span>
-            {[
-              { t: '14:23:01', m: 'System integrity verified.' },
-              { t: '14:23:05', m: 'Facial recognition engaged.' },
-              { t: '14:23:12', m: 'Anomaly detected: Sector 4.' },
-              { t: '14:23:15', m: 'Cross-referencing database...' },
-            ].map((log, i) => (
-              <div key={i} className="hud-log-entry">
-                <span className="hud-log-time">{log.t}</span>
-                <span className="hud-log-msg">{log.m}</span>
+            {/* ── DIAGNÓSTICOS SUPERIORES (Top bar) */}
+            <motion.div
+              className="hud-top-diagnostics"
+              style={{ opacity: hudOpacity, y: topPanelY }}
+            >
+              <div className="hud-diag-left">
+                <span className="hud-pulse-dot active" />
+                <span className="hud-system-status">SVIVIA INFERENCE VISOR</span>
               </div>
-            ))}
-          </motion.div>
 
-          {/* ── HUD LAYER 4: Status bar inferior */}
-          <motion.div
-            className="hud-status-bar"
-            style={{ opacity: hud4Opacity, y: hud4Y }}
-          >
-            <div className="hud-status-left">
-              <span className="hud-status-dot" />
-              <span>All systems nominal</span>
-              <span className="hud-status-sep">·</span>
-              <span>Zero-trust protocol active</span>
-            </div>
-            <div className="hud-status-right">
-              <span>SVIVIA OS v4.2.1</span>
-            </div>
+              {/* Botones de Control Táctico */}
+              <div className="hud-diag-center">
+                <button 
+                  className={`tactical-btn ${gridActive ? 'active' : ''}`} 
+                  onClick={() => setGridActive(!gridActive)}
+                >
+                  GRID {gridActive ? 'ON' : 'OFF'}
+                </button>
+                <button 
+                  className={`tactical-btn ${nightVision ? 'active' : ''}`} 
+                  onClick={() => setNightVision(!nightVision)}
+                >
+                  NIGHT VISION
+                </button>
+                <div className="camera-selector">
+                  <button className="tactical-btn cam-select-btn">
+                    {camChannel} ▾
+                  </button>
+                  <div className="camera-dropdown">
+                    <div onClick={() => changeCamera('CAM_01')}>CAM_01 (RECEPTION)</div>
+                    <div onClick={() => changeCamera('CAM_02')}>CAM_02 (SERVER_ROOM)</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Componente de Telemetría Aislado */}
+              <TelemetryDisplay />
+            </motion.div>
+
+            {/* ── PANEL DE DETECCIONES RECIENTES (Right Sidebar) */}
+            <motion.div
+              className="hud-sidebar-detections"
+              style={{ opacity: hudOpacity, x: rightPanelX }}
+            >
+              <div className="sidebar-header">
+                <span className="sidebar-title">Detecciones recientes</span>
+                <span className="sidebar-live-tag">LIVE</span>
+              </div>
+              
+              <div className="detections-list">
+                {[
+                  { id: 'Persona', time: '01:52:41 p. m.', confidence: '91%', loc: 'cell johan' },
+                  { id: 'Persona', time: '01:52:35 p. m.', confidence: '90%', loc: 'cell johan' },
+                  { id: 'Persona', time: '01:52:08 p. m.', confidence: '76%', loc: 'cell johan' },
+                  { id: 'Persona', time: '01:52:04 p. m.', confidence: '83%', loc: 'cell johan' },
+                ].map((det, i) => (
+                  <div key={i} className="detection-card">
+                    <div className="detection-thumb-wrapper">
+                      <div className="detection-thumb-scan" />
+                      <div className="detection-thumb-icon">👤</div>
+                    </div>
+                    <div className="detection-info">
+                      <div className="det-row">
+                        <span className="det-type">➜ {det.id}</span>
+                      </div>
+                      <div className="det-details">
+                        <span>{det.loc} • {det.time}</span>
+                      </div>
+                      <div className="det-confidence-bar">
+                        <div className="det-bar-fill" style={{ width: det.confidence }} />
+                        <span className="det-confidence-text">{det.confidence} Confianza</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+
+            {/* ── FUENTE DE ACTIVIDAD LOGS (Bottom-Left) */}
+            <motion.div
+              className="hud-log-lateral"
+              style={{ opacity: hudOpacity, x: leftPanelX }}
+            >
+              <span className="hud-log-title">FUENTE DE ACTIVIDAD</span>
+              <div className="hud-log-entries">
+                {[
+                  { t: '14:23:01', m: 'Se ha verificado la integridad del sistema.' },
+                  { t: '14:23:05', m: 'Reconocimiento facial activado.' },
+                  { t: '14:23:12', m: 'Anomalía detectada: Sector 4.' },
+                  { t: '14:23:15', m: 'Base de datos de referencias cruzadas...' },
+                ].map((log, i) => (
+                  <div key={i} className="hud-log-entry">
+                    <span className="hud-log-time">{log.t}</span>
+                    <span className="hud-log-msg">{log.m}</span>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+
+            {/* ── BARRA DE ESTADO INFERIOR (Bottom Status Bar) */}
+            <motion.div
+              className="hud-status-bar"
+              style={{ opacity: hudOpacity, y: bottomPanelY }}
+            >
+              <div className="hud-status-left">
+                <span className="hud-status-dot green-pulse" />
+                <span>TODOS LOS SISTEMAS NOMINALES</span>
+                <span className="hud-status-sep">·</span>
+                <span>LATENCIA RED: 12ms</span>
+                <span className="hud-status-sep">·</span>
+                <span>ZERO-TRUST ACTIVO</span>
+              </div>
+              <div className="hud-status-right">
+                <span>SVIVIA VISOR SECURE v4.3.0</span>
+              </div>
+            </motion.div>
+
           </motion.div>
-          </motion.div>
-        </div>{/* /monolith-clip */}
+        </div> {/* /monolith-clip */}
 
       </div>
     </section>

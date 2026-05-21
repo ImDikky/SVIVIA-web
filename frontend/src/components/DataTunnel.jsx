@@ -2,7 +2,7 @@ import React, { useRef, useMemo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Points, PointMaterial, Float, PerspectiveCamera } from '@react-three/drei';
 import * as THREE from 'three';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion, useScroll, useTransform, useInView } from 'framer-motion';
 
 // ==========================================
 // EL CILINDRO DE PARTÍCULAS (DATA FIELD)
@@ -82,6 +82,8 @@ function FlyingText({ word, zPos }) {
 // ==========================================
 export default function DataTunnel() {
   const containerRef = useRef(null);
+  const inView = useInView(containerRef, { amount: 0.05, margin: "200px 0px" });
+
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start end", "end start"]
@@ -100,7 +102,7 @@ export default function DataTunnel() {
             opacity: tunnelOpacity
         }}
       >
-        <Canvas dpr={[1, 2]}>
+        <Canvas dpr={[1, 1.5]} frameloop={inView ? 'always' : 'never'} gl={{ powerPreference: 'high-performance', antialias: false }}>
           <color attach="background" args={['#000']} />
           <fog attach="fog" args={['#000', 5, 25]} />
           <PerspectiveCamera makeDefault position={[0, 0, 10]} fov={75} />

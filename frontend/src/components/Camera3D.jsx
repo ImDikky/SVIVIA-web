@@ -1,7 +1,7 @@
 import React, { useRef, Suspense } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { useGLTF, Environment, Float, Center, Sparkles, ContactShadows, OrbitControls } from '@react-three/drei';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion, useScroll, useTransform, useInView } from 'framer-motion';
 import { MousePointer2 } from 'lucide-react';
 
 // ==========================================
@@ -35,6 +35,7 @@ useGLTF.preload('/camera.glb');
 
 export default function Camera3D() {
   const containerRef = useRef(null);
+  const inView = useInView(containerRef, { amount: 0.05, margin: "200px 0px" });
   
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -51,7 +52,7 @@ export default function Camera3D() {
         
         {/* LIENZO 3D */}
         <div style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
-          <Canvas camera={{ position: [0, 0, 8], fov: 45 }} dpr={[1, 2]}>
+          <Canvas camera={{ position: [0, 0, 8], fov: 45 }} dpr={[1, 1.5]} frameloop={inView ? 'always' : 'never'} gl={{ powerPreference: 'high-performance', antialias: false }}>
             <Suspense fallback={null}>
               <OrbitControls enableZoom={false} enablePan={false} makeDefault />
               <ambientLight intensity={0.2} />
@@ -60,7 +61,7 @@ export default function Camera3D() {
               
               <Model scrollYProgress={scrollYProgress} />
               
-              <Sparkles count={100} scale={10} size={1} speed={0.3} opacity={0.3} color="#4f46e5" />
+              <Sparkles count={60} scale={10} size={1} speed={0.3} opacity={0.3} color="#4f46e5" />
               <ContactShadows position={[2.5, -2.5, 0]} opacity={0.4} scale={10} blur={2} far={4} color="#000000" />
               <Environment preset="city" />
             </Suspense>
@@ -72,8 +73,7 @@ export default function Camera3D() {
           <motion.div 
             style={{ 
                padding: '3rem', 
-               background: 'rgba(10,10,10,0.4)', 
-               backdropFilter: 'blur(20px)', 
+               background: 'rgba(8,8,12,0.75)', 
                borderRadius: '40px', 
                border: '1px solid rgba(255,255,255,0.05)'
             }}

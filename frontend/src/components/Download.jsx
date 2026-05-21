@@ -1,126 +1,226 @@
 import React, { useRef } from 'react';
-import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
-import { Download as DownloadIcon, Cpu, Shield, Zap } from 'lucide-react';
+import { motion, useScroll, useTransform, useSpring, useInView } from 'framer-motion';
+import { Download as DownloadIcon, ArrowRight, Cpu, Shield, Zap } from 'lucide-react';
 
-export default function Download() {
-  const containerRef = useRef(null);
-  
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start end", "end start"]
-  });
+// ─── Palabras que se revelan al scroll ───────────────────────────────────────
+function WordReveal({ text, progress, startAt = 0, endAt = 1, className = '' }) {
+  const words = text.split(' ');
+  return (
+    <span className={className}>
+      {words.map((word, i) => {
+        const wordStart = startAt + (i / words.length) * (endAt - startAt);
+        const wordEnd = wordStart + (1 / words.length) * (endAt - startAt) * 1.5;
+        // eslint-disable-next-line react-hooks/rules-of-hooks
+        const opacity = useTransform(progress, [wordStart, wordEnd], [0.1, 1]);
+        // eslint-disable-next-line react-hooks/rules-of-hooks
+        const y = useTransform(progress, [wordStart, wordEnd], [18, 0]);
+        return (
+          <motion.span
+            key={i}
+            style={{ opacity, y, display: 'inline-block', marginRight: '0.28em' }}
+          >
+            {word}
+          </motion.span>
+        );
+      })}
+    </span>
+  );
+}
 
-  const smoothProgress = useSpring(scrollYProgress, { damping: 25, stiffness: 80 });
+// ─── Stat que cuenta al entrar en view ───────────────────────────────────────
+function CountingStat({ value, label, delay = 0 }) {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, amount: 0.8 });
+  return (
+    <motion.div
+      ref={ref}
+      className="dl-stat"
+      initial={{ opacity: 0, y: 30 }}
+      animate={inView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.7, delay, ease: [0.25, 0.8, 0.25, 1] }}
+    >
+      <span className="dl-stat-value">{value}</span>
+      <span className="dl-stat-label">{label}</span>
+    </motion.div>
+  );
+}
 
-  // 1. FONDO OPTIMIZADO: Sin rotaciones en 3D (rotateX). Solo escala pura (muy barato para la GPU)
-  const gridScale = useTransform(smoothProgress, [0, 1], [1, 1.15]);
-  const gridOpacity = useTransform(smoothProgress, [0, 0.5], [0, 0.15]);
-
-  // 2. LENTE/OJO IA OPTIMIZADO: Eliminados los 'box-shadow' que matan los FPS
-  const ringRotate = useTransform(smoothProgress, [0, 1], [0, 90]);
-  const ringScale = useTransform(smoothProgress, [0, 0.5], [0.6, 1.1]);
-  const ringOpacity = useTransform(smoothProgress, [0, 0.4], [0, 0.8]);
-
-  // 3. TARJETA OPTIMIZADA: Transformación sencilla de Y (arriba/abajo)
-  const cardY = useTransform(smoothProgress, [0, 0.5], [150, 0]);
-  const cardOpacity = useTransform(smoothProgress, [0, 0.4], [0, 1]);
+// ─── Mockup de la UI emergiendo ────────────────────────────────────────────
+function AppMockup({ progress }) {
+  const y      = useTransform(progress, [0.4, 0.85], ['60px', '0px']);
+  const opacity = useTransform(progress, [0.4, 0.75], [0, 1]);
+  const scale  = useTransform(progress, [0.4, 0.85], [0.92, 1]);
 
   return (
-    <section ref={containerRef} className="poetic-section" style={{ minHeight: '130vh', position: 'relative', overflow: 'hidden', backgroundColor: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      
-      {/* CAPA 1: FONDO OPTIMIZADO */}
-      <motion.div 
-        style={{
-          position: 'absolute', inset: -200,
-          backgroundImage: 'linear-gradient(rgba(79, 70, 229, 0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(79, 70, 229, 0.15) 1px, transparent 1px)',
-          backgroundSize: '100px 100px',
-          opacity: gridOpacity,
-          scale: gridScale,
-          transformOrigin: 'center center',
-          pointerEvents: 'none',
-          zIndex: 0,
-          willChange: 'transform, opacity' // ⚡ IMPORTANTE: Le dice a la tarjeta gráfica que procese esto por separado
-        }}
-      />
+    <motion.div className="dl-mockup" style={{ y, opacity, scale }}>
+      {/* Barra superior tipo app */}
+      <div className="dl-mockup-bar">
+        <span className="dl-mockup-dot" style={{ background: '#ff5f57' }} />
+        <span className="dl-mockup-dot" style={{ background: '#febc2e' }} />
+        <span className="dl-mockup-dot" style={{ background: '#28c840' }} />
+        <span className="dl-mockup-title">SVIVIA Engine — Panel de control</span>
+        <span className="dl-mockup-status">
+          <span className="dl-mockup-live" /> LIVE
+        </span>
+      </div>
+      {/* Grid de cámaras */}
+      <div className="dl-mockup-grid">
+        {['CAM-01', 'CAM-02', 'CAM-03', 'CAM-04'].map((cam, i) => (
+          <div key={cam} className="dl-mockup-cam">
+            <div className="dl-mockup-scanline" />
+            <span className="dl-mockup-cam-label">{cam}</span>
+            {i === 1 && (
+              <div className="dl-mockup-detection">
+                <div className="dl-mockup-bbox" />
+                <span className="dl-mockup-conf">0.94</span>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </motion.div>
+  );
+}
 
-      {/* CAPA 2: ANILLOS (Sin sombras pesadas) */}
-      <motion.div
-        style={{
-          position: 'absolute', top: '50%', left: '50%', x: '-50%', y: '-50%',
-          width: '80vw', height: '80vw',
-          maxWidth: '1000px', maxHeight: '1000px',
-          borderRadius: '50%',
-          border: '2px dashed rgba(79, 70, 229, 0.4)',
-          rotate: ringRotate,
-          scale: ringScale,
-          opacity: ringOpacity,
-          pointerEvents: 'none',
-          zIndex: 1,
-          display: 'flex', justifyContent: 'center', alignItems: 'center',
-          willChange: 'transform, opacity' // ⚡ Optimización GPU
-        }}
-      >
-         <div style={{ width: '65%', height: '65%', borderRadius: '50%', border: '1px solid rgba(255,255,255,0.1)' }} />
-      </motion.div>
+// ─── Línea de progreso del scroll ─────────────────────────────────────────
+function ScrollProgressLine({ progress }) {
+  const scaleX = useTransform(progress, [0, 1], [0, 1]);
+  return (
+    <motion.div
+      className="dl-progress-line"
+      style={{ scaleX, transformOrigin: 'left center' }}
+    />
+  );
+}
 
-      {/* CAPA 3: TARJETA (Sin blur extremo) */}
-      <motion.div 
-        style={{ 
-          y: cardY, opacity: cardOpacity,
-          zIndex: 2, position: 'relative',
-          // En lugar de usar backdrop-filter (blur) que destruye los FPS, usamos un gradiente casi opaco
-          background: 'linear-gradient(145deg, rgba(20,20,25,0.98) 0%, rgba(5,5,10,0.98) 100%)',
-          border: '1px solid rgba(255,255,255,0.05)',
-          borderRadius: '32px',
-          padding: '5rem 4rem', maxWidth: '900px', width: '90%',
-          display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center',
-          willChange: 'transform, opacity' // ⚡ Optimización GPU
-        }}
-      >
-        <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '2.5rem' }}>
-           <Cpu size={32} color="#4f46e5" />
-           <Shield size={32} color="#4f46e5" />
-           <Zap size={32} color="#4f46e5" />
+// ─── Componente principal ─────────────────────────────────────────────────
+export default function Download() {
+  const containerRef = useRef(null);
+
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ['start start', 'end end'],
+  });
+
+  const smooth = useSpring(scrollYProgress, { damping: 30, stiffness: 100 });
+
+  // Parallax del fondo
+  const bgY = useTransform(smooth, [0, 1], ['0%', '30%']);
+
+  // Opacidad de la sección (fade in/out)
+  const sectionOpacity = useTransform(smooth, [0, 0.05, 0.95, 1], [0, 1, 1, 0]);
+
+  // Eyebrow aparece pronto
+  const eyebrowOpacity = useTransform(smooth, [0.02, 0.12], [0, 1]);
+  const eyebrowY       = useTransform(smooth, [0.02, 0.12], [20, 0]);
+
+  // El CTA entra en fase final
+  const ctaOpacity = useTransform(smooth, [0.7, 0.9], [0, 1]);
+  const ctaY       = useTransform(smooth, [0.7, 0.9], [40, 0]);
+
+  return (
+    <section
+      id="download"
+      ref={containerRef}
+      className="dl-section"
+    >
+      {/* Fondo con gradiente parallax */}
+      <motion.div className="dl-bg" style={{ y: bgY }} />
+
+      {/* Sticky viewport */}
+      <motion.div className="dl-sticky" style={{ opacity: sectionOpacity }}>
+
+        {/* Línea de progreso superior */}
+        <ScrollProgressLine progress={smooth} />
+
+        {/* Columna izquierda: narrativa */}
+        <div className="dl-left">
+
+          {/* Eyebrow */}
+          <motion.div
+            className="dl-eyebrow"
+            style={{ opacity: eyebrowOpacity, y: eyebrowY }}
+          >
+            <span className="dl-eyebrow-dot" />
+            SVIVIA Engine 1.0 — Disponible ahora
+          </motion.div>
+
+          {/* Título reveal por palabras */}
+          <h2 className="dl-headline">
+            <WordReveal
+              text="Instala el futuro."
+              progress={smooth}
+              startAt={0.08}
+              endAt={0.38}
+            />
+            <br />
+            <WordReveal
+              text="Protege el presente."
+              progress={smooth}
+              startAt={0.28}
+              endAt={0.58}
+              className="dl-headline-italic"
+            />
+          </h2>
+
+          {/* Subtítulo */}
+          <motion.p
+            className="dl-subtext"
+            style={{
+              opacity: useTransform(smooth, [0.45, 0.62], [0, 1]),
+              y:       useTransform(smooth, [0.45, 0.62], [20, 0]),
+            }}
+          >
+            Vigilancia inteligente corriendo nativamente en tu hardware.<br />
+            Sin latencia de red. Sin comprometer tu privacidad.
+          </motion.p>
+
+          {/* Stats */}
+          <motion.div
+            className="dl-stats"
+            style={{
+              opacity: useTransform(smooth, [0.55, 0.72], [0, 1]),
+            }}
+          >
+            <CountingStat value="< 50ms" label="Latencia inferencia" delay={0} />
+            <div className="dl-stat-sep" />
+            <CountingStat value="99.2%" label="Precisión detección" delay={0.1} />
+            <div className="dl-stat-sep" />
+            <CountingStat value="0 bytes" label="Enviados a la nube" delay={0.2} />
+          </motion.div>
+
+          {/* CTA */}
+          <motion.div
+            className="dl-cta-wrap"
+            style={{ opacity: ctaOpacity, y: ctaY }}
+          >
+            <motion.a
+              href="#"
+              className="dl-btn-primary"
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.97 }}
+            >
+              <span className="dl-btn-shimmer" />
+              <DownloadIcon size={18} strokeWidth={2} />
+              Descargar gratis
+              <ArrowRight size={16} className="dl-btn-arrow" />
+            </motion.a>
+
+            <div className="dl-specs">
+              <span className="dl-spec"><Cpu size={12} /> Windows 10/11</span>
+              <span className="dl-spec-sep">·</span>
+              <span className="dl-spec"><Shield size={12} /> RTX recomendado</span>
+              <span className="dl-spec-sep">·</span>
+              <span className="dl-spec"><Zap size={12} /> ~450 MB</span>
+            </div>
+          </motion.div>
         </div>
 
-        <h2 className="poetic-title-huge" style={{ fontSize: '4rem', marginBottom: '1.5rem', background: 'linear-gradient(to right, #ffffff, #737373)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', lineHeight: '1.1' }}>
-          Instala el futuro.
-        </h2>
-        <p className="poetic-subtitle" style={{ marginBottom: '4rem', fontSize: '1.3rem', color: '#a3a3a3', maxWidth: '600px', lineHeight: '1.6' }}>
-          La vigilancia inteligente y privada, corriendo nativamente en tu hardware. Sin retrasos. Sin la nube.
-        </p>
-
-        <motion.button 
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          style={{
-            position: 'relative', overflow: 'hidden',
-            display: 'flex', alignItems: 'center', gap: '15px',
-            padding: '1.5rem 3.5rem',
-            background: '#ffffff', color: '#000000',
-            border: 'none', borderRadius: '50px',
-            fontSize: '1.2rem', fontWeight: '600', fontFamily: 'var(--font-sans)',
-            cursor: 'pointer'
-          }}
-        >
-          <DownloadIcon size={22} />
-          Descargar SVIVIA 1.0
-        </motion.button>
-
-        <div style={{ marginTop: '4rem', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '3rem', width: '100%', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '3rem', color: '#737373', fontSize: '1rem', fontFamily: 'var(--font-sans)', textAlign: 'left' }}>
-          <div>
-            <strong style={{ color: '#fff', display: 'block', marginBottom: '0.5rem', fontSize: '1.1rem' }}>OS</strong>
-            Windows 10 / 11 (64-bit)
-          </div>
-          <div>
-             <strong style={{ color: '#fff', display: 'block', marginBottom: '0.5rem', fontSize: '1.1rem' }}>Hardware</strong>
-            NVIDIA RTX (Recomendado)
-          </div>
-          <div>
-             <strong style={{ color: '#fff', display: 'block', marginBottom: '0.5rem', fontSize: '1.1rem' }}>Tamaño</strong>
-            ~450 MB (Instalador Offline)
-          </div>
+        {/* Columna derecha: mockup de la app */}
+        <div className="dl-right">
+          <AppMockup progress={smooth} />
         </div>
+
       </motion.div>
     </section>
   );

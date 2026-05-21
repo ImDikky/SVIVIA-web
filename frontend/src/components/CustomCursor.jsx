@@ -8,7 +8,7 @@ export default function CustomCursor() {
   const mouseY = useMotionValue(-100);
 
   // Configuramos el spring para ese efecto de "lag" orgánico
-  const springConfig = { damping: 25, stiffness: 250 };
+  const springConfig = { damping: 28, stiffness: 280 };
   const cursorX = useSpring(mouseX, springConfig);
   const cursorY = useSpring(mouseY, springConfig);
 
@@ -47,18 +47,17 @@ export default function CustomCursor() {
           position: 'fixed',
           top: 0,
           left: 0,
-          width: isHovering ? 60 : 20,
-          height: isHovering ? 60 : 20,
+          width: isHovering ? 44 : 14,
+          height: isHovering ? 44 : 14,
           borderRadius: '50%',
-          backgroundColor: isHovering ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
-          border: '1px solid rgba(255, 255, 255, 0.5)',
+          backgroundColor: isHovering ? 'rgba(255, 255, 255, 0.07)' : 'transparent',
+          border: '1px solid rgba(255, 255, 255, 0.45)',
           x: cursorX,
           y: cursorY,
           translateX: '-50%',
           translateY: '-50%',
           pointerEvents: 'none',
           zIndex: 99999,
-          backdropFilter: isHovering ? 'blur(4px)' : 'none',
         }}
         transition={{ type: 'spring', damping: 20, stiffness: 150 }}
       />
