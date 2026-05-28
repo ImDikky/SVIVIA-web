@@ -2915,3 +2915,160 @@
   color: rgba(255,255,255,0.12);
   text-transform: uppercase;
 }
+
+/* ============================================================
+   ROBOT SECTION — AI Spline 3D Scene
+   Positioned between Monologue and Features for max narrative
+   impact: the "brain" that powers SVIVIA.
+============================================================= */
+
+.robot-section {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #000;
+}
+
+/* ── Ambient glow orbs ─────────────────────────────────────── */
+.robot-glow {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(90px);
+  will-change: transform, opacity;
+}
+
+.robot-glow--primary {
+  width: 700px;
+  height: 700px;
+  background: radial-gradient(circle, rgba(99, 88, 255, 0.18) 0%, transparent 70%);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -55%);
+  animation: robotGlowPulse 5s ease-in-out infinite alternate;
+}
+
+.robot-glow--secondary {
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(20, 184, 166, 0.12) 0%, transparent 70%);
+  bottom: 5%;
+  right: 10%;
+  animation: robotGlowPulse 7s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes robotGlowPulse {
+  0%   { opacity: 0.6; }
+  100% { opacity: 1; }
+}
+
+/* ── Spline canvas wrapper ─────────────────────────────────── */
+.robot-canvas-wrapper {
+  position: relative;
+  width: min(700px, 90vw);
+  height: min(700px, 90vw);
+  z-index: 2;
+}
+
+.robot-canvas-wrapper canvas,
+.robot-canvas-wrapper > div {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* ── Loading fallback ──────────────────────────────────────── */
+.robot-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.robot-fallback-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(99, 88, 255, 0.6);
+  animation: robotDotBounce 1.2s ease-in-out infinite;
+}
+
+@keyframes robotDotBounce {
+  0%, 100% { transform: translateY(0);    opacity: 0.4; }
+  50%       { transform: translateY(-10px); opacity: 1;   }
+}
+
+/* ── Text overlay (positioned bottom-left) ─────────────────── */
+.robot-text-overlay {
+  position: absolute;
+  bottom: 10%;
+  left: 8%;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  pointer-events: none;
+}
+
+/* Badge pill */
+.robot-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.9rem;
+  border-radius: 50px;
+  background: rgba(99, 88, 255, 0.12);
+  border: 1px solid rgba(99, 88, 255, 0.35);
+  font-family: var(--font-sans);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(170, 160, 255, 0.9);
+  width: fit-content;
+}
+
+/* Title */
+.robot-title {
+  font-family: var(--font-serif);
+  font-size: clamp(2.5rem, 5vw, 4.5rem);
+  font-weight: 400;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--text-pure);
+}
+
+.robot-title--accent {
+  background: linear-gradient(135deg, #a78bfa 0%, #38bdf8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Subtitle */
+.robot-subtitle {
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.4);
+  letter-spacing: 0.05em;
+  font-weight: 300;
+}
+
+/* ── Responsive ────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .robot-canvas-wrapper {
+    width: 95vw;
+    height: 95vw;
+  }
+  .robot-text-overlay {
+    bottom: 5%;
+    left: 5%;
+    right: 5%;
+  }
+  .robot-title {
+    font-size: clamp(2rem, 8vw, 3rem);
+  }
+}

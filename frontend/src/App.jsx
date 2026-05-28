@@ -18,6 +18,7 @@ import './App.css';
 // Heavy 3D components — lazy loaded so they initialize during the loading screen
 const Camera3D       = lazy(() => import('./components/Camera3D'));
 const ModelVisualizer = lazy(() => import('./components/ModelVisualizer'));
+const RobotSection   = lazy(() => import('./components/RobotSection'));
 
 function App() {
   const [loaded, setLoaded] = useState(false);
@@ -47,6 +48,12 @@ function App() {
           <Navbar />
           <Hero />
           <Monologue />
+
+          {/* AI Robot — lazy loaded Spline 3D scene */}
+          <Suspense fallback={<div style={{ height: '100vh', background: '#000' }} />}>
+            <RobotSection />
+          </Suspense>
+
           <Features />
           <DataTunnel />
           <HorizontalShowcase />

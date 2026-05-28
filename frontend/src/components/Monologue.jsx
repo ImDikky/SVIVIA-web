@@ -95,7 +95,7 @@ export default function Monologue() {
 
         <div className="thin-separator" />
 
-        {/* Bloque 2: El silencio de lo privado — con orbe animado */}
+        {/* Bloque 2: El silencio de lo privado — con candado animado */}
         <div className="monologue-row monologue-row--reverse">
           <motion.div
             className="monologue-privacy-visual"
@@ -108,7 +108,7 @@ export default function Monologue() {
             <div className="privacy-ring privacy-ring--2" />
             <div className="privacy-ring privacy-ring--3" />
             <div className="privacy-core">
-              <Shield />
+              <LockIcon />
             </div>
           </motion.div>
 
@@ -140,10 +140,118 @@ export default function Monologue() {
   );
 }
 
-function Shield() {
+/* ─── Animated Lock Icon ─────────────────────────────────────────────────── */
+function LockIcon() {
   return (
-    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(34,197,94,0.8)" strokeWidth="1.5">
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-    </svg>
+    <motion.svg
+      width="52"
+      height="52"
+      viewBox="0 0 52 52"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.6 }}
+    >
+      {/* SVG Glow filter */}
+      <defs>
+        <filter id="lock-glow" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="2.5" result="blur" />
+          <feMerge>
+            <feMergeNode in="blur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+      </defs>
+
+      {/* Shackle (arc on top) — draws in first via pathLength */}
+      <motion.path
+        d="M16 22V17C16 11.477 20.477 7 26 7C31.523 7 36 11.477 36 17V22"
+        stroke="rgba(34,197,94,0.9)"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+        filter="url(#lock-glow)"
+        variants={{
+          hidden: { pathLength: 0, opacity: 0 },
+          visible: {
+            pathLength: 1,
+            opacity: 1,
+            transition: { duration: 0.8, ease: 'easeOut', delay: 0.2 },
+          },
+        }}
+      />
+
+      {/* Lock body — scales in after shackle finishes */}
+      <motion.rect
+        x="11"
+        y="22"
+        width="30"
+        height="23"
+        rx="4"
+        stroke="rgba(34,197,94,0.9)"
+        strokeWidth="2.2"
+        filter="url(#lock-glow)"
+        variants={{
+          hidden: { opacity: 0, scaleY: 0.6 },
+          visible: {
+            opacity: 1,
+            scaleY: 1,
+            transition: { duration: 0.5, ease: 'easeOut', delay: 0.9 },
+          },
+        }}
+        style={{ transformOrigin: '26px 22px' }}
+      />
+
+      {/* Keyhole circle */}
+      <motion.circle
+        cx="26"
+        cy="33"
+        r="3"
+        fill="rgba(34,197,94,0.85)"
+        filter="url(#lock-glow)"
+        variants={{
+          hidden: { opacity: 0, scale: 0 },
+          visible: {
+            opacity: 1,
+            scale: 1,
+            transition: { duration: 0.35, ease: 'backOut', delay: 1.35 },
+          },
+        }}
+        style={{ transformOrigin: '26px 33px' }}
+      />
+
+      {/* Keyhole stem */}
+      <motion.rect
+        x="24.5"
+        y="35"
+        width="3"
+        height="5"
+        rx="1.5"
+        fill="rgba(34,197,94,0.85)"
+        filter="url(#lock-glow)"
+        variants={{
+          hidden: { opacity: 0, scaleY: 0 },
+          visible: {
+            opacity: 1,
+            scaleY: 1,
+            transition: { duration: 0.25, ease: 'easeOut', delay: 1.55 },
+          },
+        }}
+        style={{ transformOrigin: '26px 35px' }}
+      />
+
+      {/* Pulse ring — continuous subtle heartbeat glow around keyhole */}
+      <motion.circle
+        cx="26"
+        cy="33"
+        r="7"
+        stroke="rgba(34,197,94,0.25)"
+        strokeWidth="1"
+        fill="none"
+        animate={{ scale: [1, 1.6, 1], opacity: [0.4, 0, 0.4] }}
+        transition={{ repeat: Infinity, duration: 2.4, ease: 'easeInOut', delay: 1.8 }}
+        style={{ transformOrigin: '26px 33px' }}
+      />
+    </motion.svg>
   );
 }
