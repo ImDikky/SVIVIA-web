@@ -1,5 +1,5 @@
 import React, { useRef, Suspense, lazy } from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion, useScroll, useTransform, useInView } from 'framer-motion';
 
 // Lazy-load the heavy Spline viewer — same pattern as Camera3D / ModelVisualizer
 const Spline = lazy(() => import('@splinetool/react-spline'));
@@ -10,6 +10,8 @@ const SPLINE_SCENE_URL =
 
 export default function RobotSection() {
   const sectionRef = useRef(null);
+  // Only load/render the heavy Spline canvas when the section is in viewport (+/- 200px threshold)
+  const inView = useInView(sectionRef, { amount: 0.01, margin: "200px 0px" });
 
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -34,7 +36,7 @@ export default function RobotSection() {
         background: '#000',
       }}
     >
-      {/* ── Ambient glow rings ────────────────────────────────────────────── */}
+      {/* ── Ambient glow orbs ────────────────────────────────────────────── */}
       <div className="robot-glow robot-glow--primary" />
       <div className="robot-glow robot-glow--secondary" />
 
@@ -52,7 +54,15 @@ export default function RobotSection() {
             </div>
           }
         >
-          <Spline scene={SPLINE_SCENE_URL} />
+          {inView ? (
+            <Spline scene={SPLINE_SCENE_URL} />
+          ) : (
+            <div className="robot-fallback">
+              <span className="robot-fallback-dot" />
+              <span className="robot-fallback-dot" style={{ animationDelay: '0.2s' }} />
+              <span className="robot-fallback-dot" style={{ animationDelay: '0.4s' }} />
+            </div>
+          )}
         </Suspense>
       </motion.div>
 
