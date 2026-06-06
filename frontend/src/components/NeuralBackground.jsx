@@ -187,9 +187,9 @@ function LiquidSynapses() {
         </bufferGeometry>
         <pointsMaterial
           size={0.14}
-          color="#00d2ff"
+          color="#ef4444"
           transparent
-          opacity={0.5}
+          opacity={0.65}
           sizeAttenuation
           blending={THREE.AdditiveBlending}
         />
@@ -212,9 +212,9 @@ function LiquidSynapses() {
           />
         </bufferGeometry>
         <lineBasicMaterial
-          color="#4f46e5"
+          color="#991b1b"
           transparent
-          opacity={0.35}
+          opacity={0.3}
           blending={THREE.AdditiveBlending}
         />
       </lineSegments>

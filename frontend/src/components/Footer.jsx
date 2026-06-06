@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import vantaLogo from '../assets/logovantaw.png';
-import svivaLogo from '../assets/svivalogo.png';
+import svivaLogo from '../assets/logo.png';
 
 const LINKS = [
   {

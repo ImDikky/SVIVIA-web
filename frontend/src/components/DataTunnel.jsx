@@ -1,6 +1,6 @@
 import React, { useRef, useMemo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { Points, PointMaterial, Float, PerspectiveCamera } from '@react-three/drei';
+import { Points, PointMaterial, Float, PerspectiveCamera, Text } from '@react-three/drei';
 import * as THREE from 'three';
 import { motion, useScroll, useTransform, useInView } from 'framer-motion';
 
@@ -35,7 +35,7 @@ function TunnelField() {
     <Points ref={ref} positions={positions} stride={3} frustumCulled={false}>
       <PointMaterial
         transparent
-        color="#4f46e5"
+        color="#ef4444"
         size={0.05}
         sizeAttenuation={true}
         depthWrite={false}
@@ -45,14 +45,20 @@ function TunnelField() {
   );
 }
 
+const WORDS = [
+  'YOLOv8', 'AES-256', 'LOCAL AI', 'RTSP LINK', 'ZERO TRUST', 
+  'CLOUDFLARE', 'TELEGRAM BOT', 'DETECTOR.PY', 'REID_TRACKER.PY', 
+  'PRE-BUFFER', 'TOMMY', 'THREAT_DETECTOR.PY', 'RECORDER.PY', 'SECURITY_WORKER.PY'
+];
+
 // ==========================================
 // TÉRMINOS FLOTANTES (FLYING DATA)
 // ==========================================
 function FlyingText({ word, zPos }) {
   const ref = useRef();
-  const speed = useMemo(() => 0.05 + Math.random() * 0.1, []);
+  const speed = useMemo(() => 0.08 + Math.random() * 0.12, []);
   const angle = useMemo(() => Math.random() * Math.PI * 2, []);
-  const radius = useMemo(() => 3 + Math.random() * 2, []);
+  const radius = useMemo(() => 2.5 + Math.random() * 3.5, []);
 
   useFrame((state, delta) => {
     if (ref.current) {
@@ -60,19 +66,24 @@ function FlyingText({ word, zPos }) {
         ref.current.position.z += speed;
         // Si sale de la cámara, vuelve al fondo
         if (ref.current.position.z > 5) {
-            ref.current.position.z = -50;
+            ref.current.position.z = -60;
         }
     }
   });
 
   return (
-    <Float speed={2} rotationIntensity={0.5} floatIntensity={0.5}>
-        <mesh ref={ref} position={[Math.cos(angle) * radius, Math.sin(angle) * radius, zPos]}>
-            {/* Aquí usamos una caja simple para representar datos, 
-                pero el efecto real viene del movimiento y el brillo */}
-            <boxGeometry args={[0.2, 0.05, 0.01]} />
-            <meshStandardMaterial color="#818cf8" emissive="#4f46e5" emissiveIntensity={2} />
-        </mesh>
+    <Float speed={1.5} rotationIntensity={0.2} floatIntensity={0.2}>
+        <group ref={ref} position={[Math.cos(angle) * radius, Math.sin(angle) * radius, zPos]}>
+            <Text
+              fontSize={0.26}
+              color="#f59e0b"
+              anchorX="center"
+              anchorY="middle"
+              depthTest={true}
+            >
+              {word}
+            </Text>
+        </group>
     </Float>
   );
 }
@@ -108,16 +119,16 @@ export default function DataTunnel() {
           <PerspectiveCamera makeDefault position={[0, 0, 10]} fov={75} />
           
           <ambientLight intensity={0.5} />
-          <pointLight position={[0, 0, 5]} intensity={2} color="#4f46e5" />
+          <pointLight position={[0, 0, 5]} intensity={2} color="#ef4444" />
 
           {/* Sincronizamos la cámara con el scroll usando un componente bridge */}
           <SceneController z={cameraZ} />
 
           <TunnelField />
           
-          {/* Añadimos cubos de datos voladores */}
-          {[...Array(20)].map((_, i) => (
-            <FlyingText key={i} zPos={Math.random() * -50} />
+          {/* Añadimos textos 3D voladores */}
+          {[...Array(25)].map((_, i) => (
+            <FlyingText key={i} zPos={Math.random() * -60} word={WORDS[i % WORDS.length]} />
           ))}
         </Canvas>
 
@@ -134,7 +145,7 @@ export default function DataTunnel() {
             >
                 Deep <br/> Intelligence.
             </motion.h2>
-            <p style={{ color: '#4f46e5', textTransform: 'uppercase', letterSpacing: '0.5em', marginTop: '1rem', fontSize: '0.8rem', fontWeight: 700 }}>
+            <p style={{ color: '#ef4444', textTransform: 'uppercase', letterSpacing: '0.5em', marginTop: '1rem', fontSize: '0.8rem', fontWeight: 700 }}>
                 Processing Source
             </p>
         </div>

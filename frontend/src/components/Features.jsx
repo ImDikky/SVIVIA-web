@@ -1,8 +1,8 @@
 import React, { useRef } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import DecryptedText from './DecryptedText';
-// Importamos la imagen que acabas de subir
-import tommyImg from '../assets/tommy-lindo.jpeg';
+// Importamos la imagen de analíticas reales
+import analyticsImg from '../assets/svivadasboard.jpeg';
 
 export default function Features() {
   const containerRef = useRef(null);
@@ -49,7 +49,7 @@ export default function Features() {
            style={{ 
              width: '60vw', height: '70vh', 
              borderRadius: '32px', overflow: 'hidden',
-             boxShadow: '0 0 80px rgba(79, 70, 229, 0.2)',
+             boxShadow: '0 0 80px rgba(239, 68, 68, 0.25)',
              scale: imageScale,
              filter: imageFilter,
              position: 'relative'
@@ -57,8 +57,8 @@ export default function Features() {
            whileHover="hover"
         >
           <img 
-            src={tommyImg} 
-            alt="Tommy Lindo" 
+            src={analyticsImg} 
+            alt="SVIVIA Analiticas" 
             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
           />
           
@@ -105,7 +105,7 @@ export default function Features() {
               pointerEvents: 'auto' // Re-activamos el mouse para el texto
             }}
           >
-             <h3 className="poetic-feature-title" style={{ fontSize: '2.8rem', marginBottom: '1rem', background: 'linear-gradient(to right, #fff, #4f46e5)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', lineHeight: 1.2 }}>
+             <h3 className="poetic-feature-title" style={{ fontSize: '2.8rem', marginBottom: '1rem', background: 'linear-gradient(to right, #fff, #ef4444)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', lineHeight: 1.2 }}>
                <DecryptedText text="Fase 1: Identificación." />
              </h3>
              <p style={{ color: '#a3a3a3', fontSize: '1.2rem', lineHeight: 1.6 }}>El modelo YOLOv8 escanea la geometría en tiempo real. Cada píxel es analizado buscando amenazas potenciales. La luz y la sombra ya no son excusa.</p>
@@ -125,7 +125,7 @@ export default function Features() {
               pointerEvents: 'auto'
             }}
           >
-             <h3 className="poetic-feature-title" style={{ fontSize: '2.8rem', marginBottom: '1rem', background: 'linear-gradient(to right, #fff, #4f46e5)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', lineHeight: 1.2 }}>
+             <h3 className="poetic-feature-title" style={{ fontSize: '2.8rem', marginBottom: '1rem', background: 'linear-gradient(to right, #fff, #ef4444)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', lineHeight: 1.2 }}>
                <DecryptedText text="Fase 2: Motor Cero Nube." />
              </h3>
              <p style={{ color: '#a3a3a3', fontSize: '1.2rem', lineHeight: 1.6 }}>Tu imagen, como esta, no sale de tu red. El procesamiento neuronal ocurre en el hardware local garantizando una privacidad que ninguna empresa grande te ofrece.</p>
@@ -145,7 +145,7 @@ export default function Features() {
               pointerEvents: 'auto'
             }}
           >
-             <h3 className="poetic-feature-title" style={{ fontSize: '2.8rem', marginBottom: '1rem', background: 'linear-gradient(to right, #fff, #4f46e5)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', lineHeight: 1.2 }}>
+             <h3 className="poetic-feature-title" style={{ fontSize: '2.8rem', marginBottom: '1rem', background: 'linear-gradient(to right, #fff, #ef4444)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', lineHeight: 1.2 }}>
                <DecryptedText text="Fase 3: Evidencia Directa." />
              </h3>
              <p style={{ color: '#a3a3a3', fontSize: '1.2rem', lineHeight: 1.6 }}>En caso de detección positiva, los frames en alta definición se encriptan y se envían de forma nativa a tu dispositivo a través de la integración con Telegram.</p>

@@ -18,9 +18,15 @@ export default function LoadingScreen({ onComplete }) {
     // Construir lista de assets a precargar
     const imageAssets = [
       '/src/assets/logovantaw.png',
-      '/src/assets/svivalogo.png',
+      '/src/assets/logo.png',
       '/src/assets/hero.png',
     ];
+
+    // Añadir los 143 frames de la secuencia de animación del Hero
+    for (let i = 1; i <= 143; i++) {
+      const paddedNumber = String(i).padStart(3, '0');
+      imageAssets.push(`/hero-frames/ezgif-frame-${paddedNumber}.jpg`);
+    }
 
     const glbAssets = ['/camera.glb'];
 
@@ -101,8 +107,8 @@ export default function LoadingScreen({ onComplete }) {
               className="loader-logo"
               animate={
                 phase === 'done'
-                  ? { filter: 'drop-shadow(0 0 20px rgba(34,197,94,0.8))' }
-                  : { filter: 'drop-shadow(0 0 8px rgba(34,197,94,0.3))' }
+                  ? { filter: 'drop-shadow(0 0 20px rgba(239,68,68,0.8))' }
+                  : { filter: 'drop-shadow(0 0 8px rgba(239,68,68,0.3))' }
               }
               transition={{ duration: 0.6 }}
             />

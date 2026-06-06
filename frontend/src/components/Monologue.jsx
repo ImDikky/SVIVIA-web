@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import PoeticReveal from './ui/PoeticReveal';
+import SplitTextReveal from './ui/SplitTextReveal';
 
 const TERMINAL_LINES = [
   '> inicializando YOLOv8...',
@@ -84,9 +85,10 @@ export default function Monologue() {
               <h2 className="poetic-title-huge" style={{ fontSize: '5vw', textAlign: 'left' }}>
                 Filtramos el ruido.
               </h2>
-              <p className="poetic-subtitle" style={{ textAlign: 'left' }}>
-                El viento, los árboles y las sombras solían ser un problema.<br />
-                Ahora, YOLOv8 respira en tu hardware analizando cada píxel.
+              <p className="poetic-subtitle" style={{ textAlign: 'left', color: 'transparent' }}>
+                <SplitTextReveal
+                  text="El viento, los árboles y las sombras solían ser un problema. Ahora, YOLOv8 respira en tu hardware analizando cada píxel."
+                />
               </p>
             </PoeticReveal>
           </div>
@@ -126,9 +128,10 @@ export default function Monologue() {
               <h2 className="poetic-title-huge" style={{ fontSize: '5vw', textAlign: 'left' }}>
                 El silencio<br />de lo privado.
               </h2>
-              <p className="poetic-subtitle" style={{ textAlign: 'left' }}>
-                Sin puertos abiertos, sin grabaciones expuestas.<br />
-                La inferencia empieza y termina en tu habitación.
+              <p className="poetic-subtitle" style={{ textAlign: 'left', color: 'transparent' }}>
+                <SplitTextReveal
+                  text="Sin puertos abiertos, sin grabaciones expuestas. La inferencia empieza y termina en tu habitación."
+                />
               </p>
             </PoeticReveal>
           </div>
@@ -167,7 +170,7 @@ function LockIcon() {
       {/* Shackle (arc on top) — draws in first via pathLength */}
       <motion.path
         d="M16 22V17C16 11.477 20.477 7 26 7C31.523 7 36 11.477 36 17V22"
-        stroke="rgba(34,197,94,0.9)"
+        stroke="rgba(239, 68, 68, 0.9)"
         strokeWidth="2.2"
         strokeLinecap="round"
         filter="url(#lock-glow)"
@@ -188,7 +191,7 @@ function LockIcon() {
         width="30"
         height="23"
         rx="4"
-        stroke="rgba(34,197,94,0.9)"
+        stroke="rgba(239, 68, 68, 0.9)"
         strokeWidth="2.2"
         filter="url(#lock-glow)"
         variants={{
@@ -207,7 +210,7 @@ function LockIcon() {
         cx="26"
         cy="33"
         r="3"
-        fill="rgba(34,197,94,0.85)"
+        fill="rgba(239, 68, 68, 0.85)"
         filter="url(#lock-glow)"
         variants={{
           hidden: { opacity: 0, scale: 0 },
@@ -227,7 +230,7 @@ function LockIcon() {
         width="3"
         height="5"
         rx="1.5"
-        fill="rgba(34,197,94,0.85)"
+        fill="rgba(239, 68, 68, 0.85)"
         filter="url(#lock-glow)"
         variants={{
           hidden: { opacity: 0, scaleY: 0 },
@@ -245,7 +248,7 @@ function LockIcon() {
         cx="26"
         cy="33"
         r="7"
-        stroke="rgba(34,197,94,0.25)"
+        stroke="rgba(239, 68, 68, 0.25)"
         strokeWidth="1"
         fill="none"
         animate={{ scale: [1, 1.6, 1], opacity: [0.4, 0, 0.4] }}

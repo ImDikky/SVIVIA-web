@@ -13,6 +13,7 @@ import Footer from './components/Footer';
 import CustomCursor from './components/CustomCursor';
 import NeuralBackground from './components/NeuralBackground';
 import LoadingScreen from './components/LoadingScreen';
+import LiquidDistortion from './components/ui/LiquidDistortion';
 import './App.css';
 
 // Heavy 3D components — lazy loaded so they initialize during the loading screen
@@ -30,6 +31,7 @@ function App() {
 
       {/* Main app — rendered immediately but hidden until loader exits */}
       <ReactLenis root options={{ lerp: 0.05 }}>
+        <LiquidDistortion />
         <NeuralBackground />
         <CustomCursor />
         {/* CAPA 2: Micro-Geometría HUD sutil */}
@@ -40,12 +42,12 @@ function App() {
            <div className="hud-cross hud-br"></div>
         </div>
 
+        <Navbar />
         <div className="app-container">
           {/* Orbe orgánico sutil para cumplir la cuota estética GentleRain/Aurora */}
           <div className="ambient-glow"></div>
           <div className="ambient-glow secondary"></div>
           
-          <Navbar />
           <Hero />
           <Monologue />
 

@@ -3,9 +3,15 @@ import { motion, useMotionValue, useSpring } from 'framer-motion';
 
 export default function CustomCursor() {
   const [isHovering, setIsHovering] = useState(false);
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
   
   const mouseX = useMotionValue(-100);
   const mouseY = useMotionValue(-100);
+
+  useEffect(() => {
+    const isTouch = window.matchMedia('(pointer: coarse)').matches;
+    setIsTouchDevice(isTouch);
+  }, []);
 
   // Configuramos el spring para ese efecto de "lag" orgánico
   const springConfig = { damping: 28, stiffness: 280 };
@@ -13,6 +19,8 @@ export default function CustomCursor() {
   const cursorY = useSpring(mouseY, springConfig);
 
   useEffect(() => {
+    if (isTouchDevice) return;
+
     const moveMouse = (e) => {
       mouseX.set(e.clientX);
       mouseY.set(e.clientY);
@@ -38,6 +46,8 @@ export default function CustomCursor() {
       window.removeEventListener('mouseover', handleMouseOver);
     };
   }, [mouseX, mouseY]);
+
+  if (isTouchDevice) return null;
 
   return (
     <>

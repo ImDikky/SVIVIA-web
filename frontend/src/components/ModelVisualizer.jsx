@@ -26,6 +26,23 @@ export default function ModelVisualizer() {
   const videoRef3 = useRef(null);
   const webcamStreamRef = useRef(null);
   const sectionRef = useRef(null);
+  const stageRef = useRef(null);
+
+  const handleMouseMove = (e) => {
+    if (!stageRef.current) return;
+    const rect = stageRef.current.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5; // -0.5 a 0.5
+    const y = (e.clientY - rect.top) / rect.height - 0.5; // -0.5 a 0.5
+    
+    stageRef.current.style.setProperty('--tilt-x', `${y * 22}deg`);
+    stageRef.current.style.setProperty('--tilt-y', `${-x * 22}deg`);
+  };
+
+  const handleMouseLeave = () => {
+    if (!stageRef.current) return;
+    stageRef.current.style.setProperty('--tilt-x', '0deg');
+    stageRef.current.style.setProperty('--tilt-y', '0deg');
+  };
 
   // Pause videos when out of view to free GPU
   useVisibility(sectionRef, (visible) => {
@@ -136,7 +153,12 @@ export default function ModelVisualizer() {
       <div className="model-vis-container">
         
         {/* LADO IZQUIERDO: Isometric Stage 3D */}
-        <div className="isometric-stage">
+        <div 
+          ref={stageRef}
+          className="isometric-stage"
+          onMouseMove={handleMouseMove}
+          onMouseLeave={handleMouseLeave}
+        >
           <div className={`isometric-scene ${isExpanded ? 'expanded' : ''}`}>
             
             {/* Capa 1: Input Frame */}
@@ -180,7 +202,7 @@ export default function ModelVisualizer() {
                   className="vis-layer-content"
                   style={{ filter: 'grayscale(1) contrast(3) invert(1)' }}
                 />
-                <div style={{ position: 'absolute', bottom: '12px', left: '12px', background: 'rgba(0,0,0,0.85)', padding: '4px 8px', borderRadius: '4px', fontSize: '0.65rem', fontFamily: 'monospace', color: '#00ffcc', border: '1px solid rgba(0,255,204,0.2)', zIndex: 10 }}>
+                <div style={{ position: 'absolute', bottom: '12px', left: '12px', background: 'rgba(0,0,0,0.85)', padding: '4px 8px', borderRadius: '4px', fontSize: '0.65rem', fontFamily: 'monospace', color: '#f59e0b', border: '1px solid rgba(245,158,11,0.2)', zIndex: 10 }}>
                   CONV_EDGES [C16]
                 </div>
               </div>
@@ -217,8 +239,8 @@ export default function ModelVisualizer() {
         <div className="model-vis-info">
           
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <Cpu size={18} color="#4f46e5" />
-            <span style={{ fontSize: '0.85rem', color: '#4f46e5', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+            <Cpu size={18} color="#ef4444" />
+            <span style={{ fontSize: '0.85rem', color: '#ef4444', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
               Deconstrucción de Pesos YOLOv8
             </span>
           </div>
@@ -250,7 +272,7 @@ export default function ModelVisualizer() {
               </div>
               <div className="vis-meta-row">
                 <span className="vis-meta-label">Coste Computacional</span>
-                <span className="vis-meta-value" style={{ color: '#10b981' }}>{meta.gflops}</span>
+                <span className="vis-meta-value" style={{ color: '#d97706' }}>{meta.gflops}</span>
               </div>
             </div>
 
@@ -270,7 +292,7 @@ export default function ModelVisualizer() {
                 </span>
                 <button 
                   onClick={() => setIsExpanded(!isExpanded)}
-                  style={{ background: 'none', border: 'none', color: '#4f46e5', fontSize: '0.85rem', textDecoration: 'underline', cursor: 'pointer', fontWeight: 600 }}
+                  style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '0.85rem', textDecoration: 'underline', cursor: 'pointer', fontWeight: 600 }}
                 >
                   {isExpanded ? "Apilar Capas" : "Separar Capas (3D)"}
                 </button>
