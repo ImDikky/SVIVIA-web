@@ -208,9 +208,8 @@ function CameraNode({ cam, activeCam, threatCam, onSelect, setHoveredCam }) {
         />
       </mesh>
 
-      {/* Punto Central Interactivo */}
       <mesh 
-        onClick={(e) => { e.stopPropagation(); onSelect(cam.id); }}
+        onClick={(e) => { e.stopPropagation(); onSelect(cam.id, e); }}
         onPointerOver={(e) => { 
           e.stopPropagation(); 
           setHoveredCam(cam.id);
@@ -218,7 +217,7 @@ function CameraNode({ cam, activeCam, threatCam, onSelect, setHoveredCam }) {
         }}
         onPointerOut={(e) => {
           setHoveredCam(null);
-          document.body.style.cursor = 'none';
+          document.body.style.cursor = 'default';
         }}
       >
         <sphereGeometry args={[0.13, 16, 16]} />
@@ -382,8 +381,19 @@ export default function Dashboard() {
   }, [threatCam, activeCam]);
 
   // Manejar selección de nodo
-  const handleCamSelect = (id) => {
+  const handleCamSelect = (id, event) => {
     playSound.glitch();
+    
+    if (event && event.clientX && containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      setPortalCenter({ 
+        x: event.clientX - rect.left, 
+        y: event.clientY - rect.top 
+      });
+    } else {
+      setPortalCenter({ x: window.innerWidth * 0.7, y: window.innerHeight * 0.5 });
+    }
+
     setActiveCam(id);
     const camData = cameraFeeds.find(c => c.id === id);
     const nowStr = new Date().toTimeString().split(' ')[0];
@@ -415,6 +425,7 @@ export default function Dashboard() {
   const springX = useSpring(mouseX, { damping: 28, stiffness: 140, mass: 0.45 });
   const springY = useSpring(mouseY, { damping: 28, stiffness: 140, mass: 0.45 });
   const [isHovered, setIsHovered] = useState(false);
+  const [portalCenter, setPortalCenter] = useState({ x: 300, y: 300 });
 
   const handleMouseMove = (e) => {
     if (!containerRef.current) return;
@@ -477,7 +488,7 @@ export default function Dashboard() {
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => {
               setIsHovered(false);
-              document.body.style.cursor = 'none';
+              document.body.style.cursor = 'default';
             }}
           >
             {/* AMENAZAS TOP BANNER SLIDE DOWN */}
@@ -494,7 +505,7 @@ export default function Dashboard() {
                     <AlertTriangle size={18} color="#ef4444" className="blink-icon" />
                     <span>{threatMsg}</span>
                     <button 
-                      onClick={() => handleCamSelect(threatCam)}
+                      onClick={(e) => handleCamSelect(threatCam, e)}
                       className="threat-banner-btn"
                     >
                       INVESTIGAR
@@ -600,15 +611,43 @@ export default function Dashboard() {
               )}
             </AnimatePresence>
 
-            {/* ── VISOR FLOTANTE PICTURE-IN-PICTURE (PIP) ── */}
             <AnimatePresence>
               {activeCam !== null && (
                 <motion.div 
                   className="pip-visor-overlay"
-                  initial={{ opacity: 0, x: 100, scale: 0.98 }}
-                  animate={{ opacity: 1, x: 0, scale: 1 }}
-                  exit={{ opacity: 0, x: 100, scale: 0.98 }}
-                  transition={{ type: 'spring', damping: 22 }}
+                  variants={{
+                    initial: (custom) => ({
+                      clipPath: `circle(0px at ${custom.x}px ${custom.y}px)`,
+                      opacity: 0,
+                      x: 80,
+                      scale: 0.96
+                    }),
+                    animate: (custom) => ({
+                      clipPath: `circle(2200px at ${custom.x}px ${custom.y}px)`,
+                      opacity: 1,
+                      x: 0,
+                      scale: 1,
+                      transition: {
+                        duration: 0.85,
+                        ease: [0.16, 1, 0.3, 1],
+                        x: { type: 'spring', damping: 24, stiffness: 120 }
+                      }
+                    }),
+                    exit: (custom) => ({
+                      clipPath: `circle(0px at ${custom.x}px ${custom.y}px)`,
+                      opacity: 0,
+                      x: 80,
+                      scale: 0.96,
+                      transition: {
+                        duration: 0.65,
+                        ease: [0.16, 1, 0.3, 1]
+                      }
+                    })
+                  }}
+                  custom={portalCenter}
+                  initial="initial"
+                  animate="animate"
+                  exit="exit"
                   style={{ position: 'absolute', top: '20px', bottom: '20px', right: '20px', width: '380px', zIndex: 20, background: 'rgba(8, 8, 12, 0.88)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '12px', backdropFilter: 'blur(16px)', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '-10px 0 30px rgba(0,0,0,0.5)' }}
                 >
                   {/* Header */}

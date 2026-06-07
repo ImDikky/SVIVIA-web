@@ -97,6 +97,11 @@ export default function Footer() {
             <span className="footer-status-text">Sistemas operativos</span>
           </div>
         </div>
+        <div style={{ textAlign: 'center', marginTop: '1.2rem' }}>
+          <span style={{ fontSize: '0.62rem', color: 'rgba(239, 68, 68, 0.75)', fontFamily: 'monospace', letterSpacing: '2.4px', textTransform: 'uppercase', textShadow: '0 0 8px rgba(239, 68, 68, 0.2)' }}>
+            Una creación hecha por VANTA
+          </span>
+        </div>
       </div>
     </footer>
   );

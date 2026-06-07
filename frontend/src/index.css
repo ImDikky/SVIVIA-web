@@ -24,7 +24,6 @@ body {
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  cursor: none; /* Ocultamos el cursor por defecto */
 }
 
 /* Bloqueo de scroll global */
@@ -34,7 +33,7 @@ html.no-scroll, body.no-scroll {
 }
 
 a, button {
-  cursor: none; /* Aseguramos que en links y botones tampoco aparezca */
+  cursor: pointer;
 }
 
 /* Removed Film Grain completely */
@@ -591,4 +590,13 @@ button {
   color: #a3a3a3;
   font-size: 0.75rem;
   font-family: monospace;
+}
+
+/* Hide default native scrollbars globally for a custom scrollytelling experience */
+html {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }

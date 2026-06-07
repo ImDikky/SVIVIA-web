@@ -4,8 +4,9 @@ import { useGLTF, Environment, Float, Center, Sparkles, ContactShadows, OrbitCon
 import { motion, useScroll, useInView } from 'framer-motion';
 import { MousePointer2, Cpu } from 'lucide-react';
 import * as THREE from 'three';
-import { useLenis } from 'lenis/react';
 import SpotlightOverlay from './ui/SpotlightOverlay';
+import EditorialTextDrift from './ui/EditorialTextDrift';
+import SplitLetterReveal from './ui/SplitLetterReveal';
 
 // ==========================================
 // EL COMPONENTE DEL MODELO 3D CON EXPLOSIÓN Y CURSOR
@@ -253,86 +254,10 @@ export default function Camera3D() {
   const indexRef = useRef(null);
   const modeRef = useRef(null);
 
-  // Estados para bloqueo de scroll premium
-  const [isLocked, setIsLocked] = useState(false);
-  const [countdown, setCountdown] = useState(5);
-  const hasLockedRef = useRef(false);
-  const lenis = useLenis();
-
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start start", "end end"]
   });
-
-  // Monitorear scroll y activar bloqueo al llegar a la fase de interacción
-  useEffect(() => {
-    const unsubscribe = scrollYProgress.on('change', (progress) => {
-      // Reiniciar posibilidad de bloqueo al salir completamente de la sección
-      if (progress < 0.05 || progress > 0.95) {
-        hasLockedRef.current = false;
-      }
-
-      // Bloquear scroll cuando el modelo está explotado para que el usuario pueda ver los hotspots
-      if (progress >= 0.38 && progress <= 0.75 && !hasLockedRef.current && !isLocked) {
-        hasLockedRef.current = true;
-        setIsLocked(true);
-        setCountdown(5);
-      }
-    });
-
-    return () => unsubscribe();
-  }, [scrollYProgress, isLocked]);
-
-  // Manejar bloqueo de eventos de scroll nativos y de Lenis
-  useEffect(() => {
-    if (isLocked) {
-      if (lenis) {
-        lenis.stop();
-      }
-    } else {
-      if (lenis) {
-        lenis.start();
-      }
-      return;
-    }
-
-    const preventDefault = (e) => {
-      const keys = [' ', 'PageUp', 'PageDown', 'End', 'Home', 'ArrowUp', 'ArrowDown'];
-      if (keys.includes(e.key)) {
-        e.preventDefault();
-      }
-    };
-    const preventScroll = (e) => {
-      e.preventDefault();
-    };
-
-    // Registrar listeners en fase de captura para forzar el bloqueo
-    window.addEventListener('wheel', preventScroll, { passive: false });
-    window.addEventListener('touchmove', preventScroll, { passive: false });
-    window.addEventListener('keydown', preventDefault, { passive: false });
-
-    // Cuenta regresiva
-    const timer = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          setIsLocked(false);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => {
-      window.removeEventListener('wheel', preventScroll);
-      window.removeEventListener('touchmove', preventScroll);
-      window.removeEventListener('keydown', preventDefault);
-      clearInterval(timer);
-      if (lenis) {
-        lenis.start();
-      }
-    };
-  }, [isLocked, lenis]);
 
   return (
     <section ref={containerRef} style={{ height: '350vh', position: 'relative', backgroundColor: '#000' }}>
@@ -352,7 +277,7 @@ export default function Camera3D() {
       <div style={{ position: 'sticky', top: 0, height: '100vh', width: '100%', display: 'flex', alignItems: 'center', overflow: 'hidden' }}>
         
         {/* LIENZO 3D */}
-        <div style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
+        <div data-cursor="ORBITAR CAD" style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
           <Canvas camera={{ position: [0, 0, 8], fov: 45 }} dpr={[1, 1.5]} frameloop={inView ? 'always' : 'never'} gl={{ powerPreference: 'high-performance', antialias: false }}>
             <Suspense fallback={null}>
               <OrbitControls enableZoom={false} enablePan={false} makeDefault />
@@ -383,8 +308,11 @@ export default function Camera3D() {
             whileInView={{ opacity: 1, x: 0 }}
             transition={{ duration: 1, ease: "easeOut" }}
           >
-            <h2 className="poetic-title-huge" style={{ fontSize: '3.6rem', marginBottom: '1.2rem', background: 'linear-gradient(to right, #fff, #ef4444)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', lineHeight: 1.1 }}>
-              Hardware <br/>Agnóstico.
+            <h2 className="poetic-title-huge" style={{ fontSize: '3.6rem', marginBottom: '1.2rem', lineHeight: 1.1 }}>
+              <EditorialTextDrift 
+                line1={<SplitLetterReveal text="Hardware" delay={0.15} style={{ color: '#fff' }} />} 
+                line2={<SplitLetterReveal text="Agnóstico." delay={0.4} style={{ color: '#ef4444' }} />} 
+              />
             </h2>
             <p style={{ color: '#a3a3a3', fontSize: '1.1rem', lineHeight: 1.6, marginBottom: '2rem' }}>
               Cámaras IP, webcams antiguas o sistemas CCTV. SVIVIA extrae la señal RTSP pura y la inyecta de inteligencia artificial, reviviendo tu hardware existente sin complicaciones.
@@ -419,61 +347,6 @@ export default function Camera3D() {
         <SpotlightOverlay sectionRef={containerRef} />
 
       </div>
-
-      {/* HUD OVERLAY DE BLOQUEO DE SCROLL INTERACTIVO */}
-      {isLocked && (
-        <div 
-          style={{
-            position: 'fixed',
-            bottom: '40px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            background: 'rgba(10, 11, 15, 0.92)',
-            border: '1px solid rgba(239, 68, 68, 0.35)',
-            backdropFilter: 'blur(20px)',
-            borderRadius: '16px',
-            padding: '12px 20px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '15px',
-            zIndex: 1000,
-            fontFamily: 'monospace',
-            color: '#fff',
-            fontSize: '0.8rem',
-            boxShadow: '0 15px 40px rgba(0, 0, 0, 0.5)',
-            pointerEvents: 'auto'
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#ef4444', animation: 'pulse-red 1.5s infinite' }} />
-            <span>VISTA ANCLADA PARA ANÁLISIS: <strong>{countdown}s</strong></span>
-          </div>
-          <button 
-            onClick={() => setIsLocked(false)}
-            style={{
-              background: 'rgba(255, 255, 255, 0.05)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              borderRadius: '8px',
-              padding: '4px 10px',
-              color: '#ef4444',
-              fontSize: '0.75rem',
-              fontWeight: 'bold',
-              cursor: 'pointer',
-              transition: 'all 0.2s'
-            }}
-            onMouseEnter={(e) => {
-              e.target.style.background = 'rgba(239, 68, 68, 0.15)';
-              e.target.style.borderColor = 'rgba(239, 68, 68, 0.3)';
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.background = 'rgba(255, 255, 255, 0.05)';
-              e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)';
-            }}
-          >
-            OMITIR
-          </button>
-        </div>
-      )}
     </section>
   );
 }

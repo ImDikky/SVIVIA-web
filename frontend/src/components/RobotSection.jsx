@@ -1,6 +1,6 @@
 import React, { useRef, Suspense, lazy, useState, useEffect } from 'react';
-import { motion, useScroll, useTransform, useInView } from 'framer-motion';
-import { useLenis } from 'lenis/react';
+import { motion, useScroll, useTransform, useInView, useVelocity, useSpring } from 'framer-motion';
+import SplitLetterReveal from './ui/SplitLetterReveal';
 
 // Lazy-load the heavy Spline viewer
 const Spline = lazy(() => import('@splinetool/react-spline'));
@@ -97,16 +97,12 @@ function NeuralHUD({ opacity, y, inView }) {
       </motion.span>
 
       {/* ── Headline ── */}
-      <motion.h2
-        className="robot-title"
-        initial={{ opacity: 0, y: 24 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.75, delay: 0.35, ease: [0.33, 1, 0.68, 1] }}
-      >
-        Ve lo que el ojo<br />
-        <span className="robot-title--accent">humano no puede.</span>
-      </motion.h2>
+      <h2 className="robot-title">
+        <SplitLetterReveal text="Ve lo que el ojo" delay={0.2} /><br />
+        <span className="robot-title--accent">
+          <SplitLetterReveal text="humano no puede." delay={0.5} />
+        </span>
+      </h2>
 
       {/* ── Subtitle ── */}
       <motion.p
@@ -196,10 +192,6 @@ export default function RobotSection() {
   const inView = useInView(sectionRef, { amount: 0.01, margin: "200px 0px" });
 
   const [hasLoaded, setHasLoaded] = useState(false);
-  const [isLocked, setIsLocked] = useState(false);
-  const [countdown, setCountdown] = useState(4);
-  const hasLockedRef = useRef(false);
-  const lenis = useLenis();
 
   // Activar la precarga por primera vez al entrar en el viewport
   useEffect(() => {
@@ -217,75 +209,16 @@ export default function RobotSection() {
   const opacity = useTransform(scrollYProgress, [0, 0.4], [0, 1]);
   const y = useTransform(scrollYProgress, [0, 0.4], [80, 0]);
 
-  // Monitorear scroll y activar bloqueo al estar casi centrado (progress >= 0.85)
-  useEffect(() => {
-    const unsubscribe = scrollYProgress.on('change', (progress) => {
-      // Reiniciar posibilidad de bloqueo al salir completamente de la sección
-      if (progress < 0.1) {
-        hasLockedRef.current = false;
-      }
-
-      // Bloquear scroll cuando el robot se centra en pantalla
-      if (progress >= 0.85 && !hasLockedRef.current && !isLocked) {
-        hasLockedRef.current = true;
-        setIsLocked(true);
-        setCountdown(4);
-      }
-    });
-
-    return () => unsubscribe();
-  }, [scrollYProgress, isLocked]);
-
-  // Manejar bloqueo de eventos de scroll nativos y de Lenis
-  useEffect(() => {
-    if (isLocked) {
-      if (lenis) {
-        lenis.stop();
-        lenis.scrollTo(sectionRef.current, { duration: 0.5, immediate: false });
-      }
-    } else {
-      if (lenis) {
-        lenis.start();
-      }
-      return;
-    }
-
-    const preventDefault = (e) => {
-      const keys = [' ', 'PageUp', 'PageDown', 'End', 'Home', 'ArrowUp', 'ArrowDown'];
-      if (keys.includes(e.key)) {
-        e.preventDefault();
-      }
-    };
-    const preventScroll = (e) => {
-      e.preventDefault();
-    };
-
-    window.addEventListener('wheel', preventScroll, { passive: false });
-    window.addEventListener('touchmove', preventScroll, { passive: false });
-    window.addEventListener('keydown', preventDefault, { passive: false });
-
-    // Cuenta regresiva
-    const timer = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          setIsLocked(false);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => {
-      window.removeEventListener('wheel', preventScroll);
-      window.removeEventListener('touchmove', preventScroll);
-      window.removeEventListener('keydown', preventDefault);
-      clearInterval(timer);
-      if (lenis) {
-        lenis.start();
-      }
-    };
-  }, [isLocked, lenis]);
+  // Velocity-based ambient glow reaction
+  const { scrollY } = useScroll();
+  const scrollVelocity = useVelocity(scrollY);
+  const smoothVelocity = useSpring(useTransform(scrollVelocity, (v) => Math.min(Math.abs(v) / 1000, 2)), {
+    damping: 30,
+    stiffness: 120
+  });
+  
+  const glowScale = useTransform(smoothVelocity, [0, 2], [1, 1.25]);
+  const glowOpacity = useTransform(smoothVelocity, [0, 2], [0.65, 1.15]);
 
   return (
     <section
@@ -302,8 +235,14 @@ export default function RobotSection() {
       }}
     >
       {/* ── Ambient glow orbs ────────────────────────────────────────────── */}
-      <div className="robot-glow robot-glow--primary" />
-      <div className="robot-glow robot-glow--secondary" />
+      <motion.div 
+        className="robot-glow robot-glow--primary" 
+        style={{ scale: glowScale, opacity: glowOpacity, x: "-50%", y: "-55%" }}
+      />
+      <motion.div 
+        className="robot-glow robot-glow--secondary" 
+        style={{ scale: glowScale, opacity: glowOpacity }}
+      />
 
       {/* ── Spline 3-D Robot ─────────────────────────────────────────────── */}
       <motion.div
@@ -325,7 +264,7 @@ export default function RobotSection() {
             cuando está fuera de vista para pausar el repintado del navegador y ahorrar GPU.
           */}
           {hasLoaded && (
-            <div style={{ display: inView ? 'block' : 'none', width: '100%', height: '100%' }}>
+            <div data-cursor="ROTAR ROBOT" style={{ display: inView ? 'block' : 'none', width: '100%', height: '100%' }}>
               <Spline scene={SPLINE_SCENE_URL} />
             </div>
           )}
@@ -342,61 +281,6 @@ export default function RobotSection() {
 
       {/* ── Neural Inference HUD overlay ────────────────────────────────── */}
       <NeuralHUD opacity={opacity} y={y} inView={inView} />
-
-      {/* HUD OVERLAY DE BLOQUEO DE SCROLL INTERACTIVO */}
-      {isLocked && (
-        <div 
-          style={{
-            position: 'fixed',
-            bottom: '40px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            background: 'rgba(10, 11, 15, 0.92)',
-            border: '1px solid rgba(239, 68, 68, 0.35)',
-            backdropFilter: 'blur(20px)',
-            borderRadius: '16px',
-            padding: '12px 20px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '15px',
-            zIndex: 1000,
-            fontFamily: 'monospace',
-            color: '#fff',
-            fontSize: '0.8rem',
-            boxShadow: '0 15px 40px rgba(0, 0, 0, 0.5)',
-            pointerEvents: 'auto'
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#ef4444', animation: 'pulse-red 1.5s infinite' }} />
-            <span>INTERACCIÓN DE ROBOT ACTIVA: <strong>{countdown}s</strong></span>
-          </div>
-          <button 
-            onClick={() => setIsLocked(false)}
-            style={{
-              background: 'rgba(255, 255, 255, 0.05)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              borderRadius: '8px',
-              padding: '4px 10px',
-              color: '#ef4444',
-              fontSize: '0.75rem',
-              fontWeight: 'bold',
-              cursor: 'pointer',
-              transition: 'all 0.2s'
-            }}
-            onMouseEnter={(e) => {
-              e.target.style.background = 'rgba(239, 68, 68, 0.15)';
-              e.target.style.borderColor = 'rgba(239, 68, 68, 0.3)';
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.background = 'rgba(255, 255, 255, 0.05)';
-              e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)';
-            }}
-          >
-            OMITIR
-          </button>
-        </div>
-      )}
     </section>
   );
 }

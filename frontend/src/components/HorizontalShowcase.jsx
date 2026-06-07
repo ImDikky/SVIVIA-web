@@ -5,6 +5,8 @@ import {
   ArrowLeft, Send, ShieldAlert, Clock, UserCheck, Cpu, HelpCircle 
 } from 'lucide-react';
 import DecryptedText from './DecryptedText';
+import MaskReveal from './ui/MaskReveal';
+import EditorialTextDrift from './ui/EditorialTextDrift';
 
 // Importar imágenes reales de los assets
 import alertImage from '../assets/ALERTAS-TELEGRAM.jpeg';
@@ -309,6 +311,36 @@ function IPhoneSimulator() {
   );
 }
 
+function ParallaxCardMedia({ scrollYProgress, index, src, alt }) {
+  // Define active window for this card (each represents 12.5% of total train)
+  const startRange = Math.max(0, (index - 1) * 0.125);
+  const endRange = Math.min(1, (index + 1) * 0.125);
+
+  // Translate horizontal alignment opposite to scroll to create depth
+  const imageX = useTransform(scrollYProgress, [startRange, endRange], ["-7%", "7%"]);
+
+  return (
+    <div className="horizontal-card-media" style={{ overflow: 'hidden', position: 'relative' }}>
+      <MaskReveal duration={1.5} threshold={0.05}>
+        <motion.img
+          src={src}
+          alt={alt}
+          className="horizontal-media-img"
+          style={{
+            x: imageX,
+            scale: 1.15,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            opacity: 0.6,
+          }}
+        />
+      </MaskReveal>
+      <div className="horizontal-media-overlay" />
+    </div>
+  );
+}
+
 export default function HorizontalShowcase() {
   const targetRef = useRef(null);
   
@@ -354,8 +386,11 @@ export default function HorizontalShowcase() {
         
         {/* Título fijo */}
         <div style={{ position: 'absolute', top: '12vh', left: '5vw', zIndex: 10 }}>
-            <h2 className="poetic-title-huge" style={{ fontSize: '3vw', color: '#fff' }}>
-              <DecryptedText text="Características de Operación." />
+            <h2 className="poetic-title-huge" style={{ fontSize: '3vw', color: '#fff', lineHeight: 1.1 }}>
+                <EditorialTextDrift 
+                  line1={<DecryptedText text="Características de" />} 
+                  line2={<DecryptedText text="Operación." />} 
+                />
             </h2>
             <div style={{ width: '60px', height: '2px', background: '#ef4444', marginTop: '0.8rem' }}></div>
         </div>
@@ -374,10 +409,12 @@ export default function HorizontalShowcase() {
                      En lugar de grabaciones pasivas, SVIVA analiza cada segundo de grabación distinguiendo con precisión entre humanos, vehículos, motocicletas y animales en tiempo real.
                    </p>
                 </div>
-                <div className="horizontal-card-media">
-                  <img src={dashboardImage1} className="horizontal-media-img" alt="YOLOv8 Detection" />
-                  <div className="horizontal-media-overlay" />
-                </div>
+                <ParallaxCardMedia 
+                  scrollYProgress={scrollYProgress} 
+                  index={0} 
+                  src={dashboardImage1} 
+                  alt="YOLOv8 Detection" 
+                />
              </div>
           </div>
 
@@ -392,10 +429,12 @@ export default function HorizontalShowcase() {
                      Rastrea sospechosos asignándoles IDs militares (como TARGET-ALPHA) a lo largo de varias cámaras. Memoriza las tonalidades de color de su ropa (torso y pantalones) para ubicarlos sin invadir su privacidad facial.
                    </p>
                 </div>
-                <div className="horizontal-card-media">
-                  <img src={dashboardImage2} className="horizontal-media-img" alt="Re-ID Tracker" />
-                  <div className="horizontal-media-overlay" />
-                </div>
+                <ParallaxCardMedia 
+                  scrollYProgress={scrollYProgress} 
+                  index={1} 
+                  src={dashboardImage2} 
+                  alt="Re-ID Tracker" 
+                />
              </div>
           </div>
 
@@ -433,10 +472,12 @@ export default function HorizontalShowcase() {
                      Evita alertas tardías. El grabador inteligente almacena constantemente los últimos 5 segundos de grabación en memoria temporal y los une a la alerta en vivo para que veas el ingreso exacto antes de cruzar la entrada.
                    </p>
                 </div>
-                <div className="horizontal-card-media">
-                  <img src={recordingsImage} className="horizontal-media-img" alt="Pre-buffer recordings" />
-                  <div className="horizontal-media-overlay" />
-                </div>
+                <ParallaxCardMedia 
+                  scrollYProgress={scrollYProgress} 
+                  index={3} 
+                  src={recordingsImage} 
+                  alt="Pre-buffer recordings" 
+                />
              </div>
           </div>
 
@@ -482,10 +523,12 @@ export default function HorizontalShowcase() {
                      Sin cuotas mensuales ni servidores en la nube. Tus datos permanecen en tu equipo local. Para el acceso externo seguro, crea un túnel digital cifrado militar con Cloudflare Zero Trust.
                    </p>
                 </div>
-                <div className="horizontal-card-media">
-                  <img src={configImage} className="horizontal-media-img" alt="Cloudflare Tunnel settings" />
-                  <div className="horizontal-media-overlay" />
-                </div>
+                <ParallaxCardMedia 
+                  scrollYProgress={scrollYProgress} 
+                  index={6} 
+                  src={configImage} 
+                  alt="Cloudflare Tunnel settings" 
+                />
              </div>
           </div>
 
@@ -500,10 +543,12 @@ export default function HorizontalShowcase() {
                      Olvídate de manuales aburridos. Al instalar la aplicación, serás recibido por Tommy, un gato cibernético animado con efectos de ciencia ficción que te guiará paso a paso para configurar tu red de forma interactiva y lúdica.
                    </p>
                 </div>
-                <div className="horizontal-card-media">
-                  <img src={tommyImage} className="horizontal-media-img" alt="Tommy cyber assistant" />
-                  <div className="horizontal-media-overlay" />
-                </div>
+                <ParallaxCardMedia 
+                  scrollYProgress={scrollYProgress} 
+                  index={7} 
+                  src={tommyImage} 
+                  alt="Tommy cyber assistant" 
+                />
              </div>
           </div>
 

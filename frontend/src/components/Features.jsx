@@ -1,7 +1,8 @@
 import React, { useRef } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import DecryptedText from './DecryptedText';
-// Importamos la imagen de analíticas reales
+import MaskReveal from './ui/MaskReveal';
+import EditorialTextDrift from './ui/EditorialTextDrift';
 import analyticsImg from '../assets/svivadasboard.jpeg';
 
 export default function Features() {
@@ -56,11 +57,13 @@ export default function Features() {
            }}
            whileHover="hover"
         >
-          <img 
-            src={analyticsImg} 
-            alt="SVIVIA Analiticas" 
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-          />
+          <MaskReveal duration={1.6}>
+            <img 
+              src={analyticsImg} 
+              alt="SVIVIA Analiticas" 
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
+          </MaskReveal>
           
           {/* LÍNEA DE ESCANEO (SCANLINE) */}
           <div className="scan-line" />
@@ -105,8 +108,11 @@ export default function Features() {
               pointerEvents: 'auto' // Re-activamos el mouse para el texto
             }}
           >
-             <h3 className="poetic-feature-title" style={{ fontSize: '2.8rem', marginBottom: '1rem', background: 'linear-gradient(to right, #fff, #ef4444)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', lineHeight: 1.2 }}>
-               <DecryptedText text="Fase 1: Identificación." />
+             <h3 className="poetic-feature-title" style={{ fontSize: '2.8rem', marginBottom: '1rem', lineHeight: 1.2 }}>
+                <EditorialTextDrift 
+                  line1={<DecryptedText text="Fase 1:" style={{ color: '#fff' }} />} 
+                  line2={<DecryptedText text="Identificación." style={{ color: '#ef4444' }} />} 
+                />
              </h3>
              <p style={{ color: '#a3a3a3', fontSize: '1.2rem', lineHeight: 1.6 }}>El modelo YOLOv8 escanea la geometría en tiempo real. Cada píxel es analizado buscando amenazas potenciales. La luz y la sombra ya no son excusa.</p>
           </motion.div>
@@ -125,8 +131,11 @@ export default function Features() {
               pointerEvents: 'auto'
             }}
           >
-             <h3 className="poetic-feature-title" style={{ fontSize: '2.8rem', marginBottom: '1rem', background: 'linear-gradient(to right, #fff, #ef4444)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', lineHeight: 1.2 }}>
-               <DecryptedText text="Fase 2: Motor Cero Nube." />
+             <h3 className="poetic-feature-title" style={{ fontSize: '2.8rem', marginBottom: '1rem', lineHeight: 1.2 }}>
+                <EditorialTextDrift 
+                  line1={<DecryptedText text="Fase 2:" style={{ color: '#fff' }} />} 
+                  line2={<DecryptedText text="Motor Cero Nube." style={{ color: '#ef4444' }} />} 
+                />
              </h3>
              <p style={{ color: '#a3a3a3', fontSize: '1.2rem', lineHeight: 1.6 }}>Tu imagen, como esta, no sale de tu red. El procesamiento neuronal ocurre en el hardware local garantizando una privacidad que ninguna empresa grande te ofrece.</p>
           </motion.div>
@@ -145,8 +154,11 @@ export default function Features() {
               pointerEvents: 'auto'
             }}
           >
-             <h3 className="poetic-feature-title" style={{ fontSize: '2.8rem', marginBottom: '1rem', background: 'linear-gradient(to right, #fff, #ef4444)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', lineHeight: 1.2 }}>
-               <DecryptedText text="Fase 3: Evidencia Directa." />
+             <h3 className="poetic-feature-title" style={{ fontSize: '2.8rem', marginBottom: '1rem', lineHeight: 1.2 }}>
+                <EditorialTextDrift 
+                  line1={<DecryptedText text="Fase 3:" style={{ color: '#fff' }} />} 
+                  line2={<DecryptedText text="Evidencia Directa." style={{ color: '#ef4444' }} />} 
+                />
              </h3>
              <p style={{ color: '#a3a3a3', fontSize: '1.2rem', lineHeight: 1.6 }}>En caso de detección positiva, los frames en alta definición se encriptan y se envían de forma nativa a tu dispositivo a través de la integración con Telegram.</p>
           </motion.div>

@@ -1,247 +1,205 @@
-import React, { useRef, useMemo, useEffect } from 'react';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import * as THREE from 'three';
+import React, { useEffect, useRef } from 'react';
 
-function LiquidSynapses() {
-  const pointsRef = useRef();
-  const linesRef = useRef();
-  const pointsGeomRef = useRef();
-  const linesGeomRef = useRef();
-  const { camera } = useThree();
+/**
+ * NeuralBackground — INTERACTIVE TACTILE DOT GRID (REFINED BRIGHT RED)
+ * 
+ * Renders a lightweight 2D canvas of micro-dots spaced in a grid.
+ * Nearby dots are repelled by the cursor, morphing smoothly in size and color:
+ * - Idle: 1.1px radius, light white-gray color, 0.11 opacity.
+ * - Hover: 2.6px radius, intense solid red color, 0.92 opacity.
+ */
+export default function NeuralBackground() {
+  const canvasRef = useRef(null);
+  const mouseRef = useRef({ x: -1000, y: -1000, active: false });
+  const dotsRef = useRef([]);
+  const animationFrameId = useRef(null);
+  const isAnimating = useRef(false);
+  const scrollYRef = useRef(0);
 
-  const SIZE = 78;    // 78×78 — cobertura total incluso en ultra-wide
-  const SPACING = 1.5; // Cuadros finos y sutiles
-  const COUNT = SIZE * SIZE;
-
-  // Posiciones originales (referencia estática)
-  const originalPositions = useMemo(() => {
-    const arr = new Float32Array(COUNT * 3);
-    for (let y = 0; y < SIZE; y++) {
-      for (let x = 0; x < SIZE; x++) {
-        const i = (y * SIZE + x) * 3;
-        arr[i]     = (x - (SIZE - 1) / 2) * SPACING;
-        arr[i + 1] = (y - (SIZE - 1) / 2) * SPACING;
-        arr[i + 2] = 0;
-      }
-    }
-    return arr;
-  }, []);
-
-  // Buffer de posiciones para PUNTOS (exclusivo)
-  const pointPositions = useMemo(() => {
-    const arr = new Float32Array(COUNT * 3);
-    arr.set(originalPositions);
-    return arr;
-  }, [originalPositions]);
-
-  // Buffer de posiciones para LINEAS (exclusivo, evita el error de WebGL al compartir buffer)
-  const linePositions = useMemo(() => {
-    const arr = new Float32Array(COUNT * 3);
-    arr.set(originalPositions);
-    return arr;
-  }, [originalPositions]);
-
-  // Velocidades compartidas
-  const velocities = useMemo(() => new Float32Array(COUNT * 3), []);
-
-  // Índices de líneas (conexiones entre vecinos)
-  const lineIndices = useMemo(() => {
-    const indices = [];
-    for (let y = 0; y < SIZE; y++) {
-      for (let x = 0; x < SIZE; x++) {
-        const idx = y * SIZE + x;
-        if (x < SIZE - 1) indices.push(idx, idx + 1);
-        if (y < SIZE - 1) indices.push(idx, idx + SIZE);
-      }
-    }
-    return new Uint16Array(indices);
-  }, []);
-
-  // Tracker de mouse global (el canvas tiene pointerEvents:none)
-  const mouseNDC = useRef({ x: 0, y: 0 });
   useEffect(() => {
-    const onMove = (e) => {
-      mouseNDC.current.x = (e.clientX / window.innerWidth) * 2 - 1;
-      mouseNDC.current.y = -(e.clientY / window.innerHeight) * 2 + 1;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d', { alpha: true });
+    
+    let width = (canvas.width = window.innerWidth);
+    let height = (canvas.height = window.innerHeight);
+    const spacing = 45; // Dot grid size
+
+    const initGrid = () => {
+      const dpr = window.devicePixelRatio || 1;
+      width = window.innerWidth;
+      height = window.innerHeight;
+      
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+      
+      ctx.scale(dpr, dpr);
+
+      const cols = Math.ceil(width / spacing) + 1;
+      // Generate extra rows to cover scrolling (parallax shifts dots up)
+      const rows = Math.ceil((height + 1600) / spacing) + 1;
+      
+      const newDots = [];
+      const scrollOffset = scrollYRef.current * 0.14;
+      for (let c = 0; c < cols; c++) {
+        for (let r = 0; r < rows; r++) {
+          newDots.push({
+            ox: c * spacing,
+            oy: r * spacing,
+            x: c * spacing,
+            y: r * spacing - scrollOffset,
+            vx: 0,
+            vy: 0,
+            alpha: 0.11,
+          });
+        }
+      }
+      dotsRef.current = newDots;
+      draw();
     };
-    window.addEventListener('mousemove', onMove, { passive: true });
-    return () => window.removeEventListener('mousemove', onMove);
-  }, []);
 
-  const mouseWorld = useMemo(() => new THREE.Vector3(), []);
-  const tempDir    = useMemo(() => new THREE.Vector3(), []);
+    const draw = () => {
+      ctx.clearRect(0, 0, width, height);
+      const dots = dotsRef.current;
+      
+      for (let i = 0; i < dots.length; i++) {
+        const dot = dots[i];
+        
+        // Calculate dynamic hover factor based on alpha range [0.11, 0.92]
+        const hoverFactor = Math.min(1, Math.max(0, (dot.alpha - 0.11) / 0.81));
+        
+        // Morph color: solid 255 red, with green/blue dropping sharply to 0 as hoverFactor grows
+        const r = 255;
+        const g = Math.max(0, Math.min(240, Math.round(240 * (1 - hoverFactor * 1.8))));
+        const b = Math.max(0, Math.min(240, Math.round(240 * (1 - hoverFactor * 1.8))));
+        
+        ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${dot.alpha})`;
+        ctx.beginPath();
+        
+        // Size grows smoothly from 1.1px to 2.6px based on interaction
+        const radius = 1.1 + hoverFactor * 1.5;
+        ctx.arc(dot.x, dot.y, radius, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    };
 
-  useFrame((state) => {
-    const time = state.clock.getElapsedTime();
+    const update = () => {
+      const dots = dotsRef.current;
+      const mouse = mouseRef.current;
+      let needsNextFrame = false;
 
-    // Leve rotación orgánica de fondo
-    const rotZ = Math.sin(time * 0.035) * 0.06;
-    const rotY = Math.cos(time * 0.018) * 0.04;
-    if (pointsRef.current) {
-      pointsRef.current.rotation.z = rotZ;
-      pointsRef.current.rotation.y = rotY;
-    }
-    if (linesRef.current) {
-      linesRef.current.rotation.z = rotZ;
-      linesRef.current.rotation.y = rotY;
-    }
+      const maxDist = 110; // Interaction radius
+      const scrollOffset = scrollYRef.current * 0.14;
 
-    // Proyectar mouse a coordenadas mundo 3D
-    mouseWorld.set(mouseNDC.current.x, mouseNDC.current.y, 0.5).unproject(camera);
-    tempDir.copy(mouseWorld).sub(camera.position).normalize();
-    const dist = -camera.position.z / tempDir.z;
-    const mx = camera.position.x + tempDir.x * dist;
-    const my = camera.position.y + tempDir.y * dist;
+      for (let i = 0; i < dots.length; i++) {
+        const dot = dots[i];
+        
+        const dx = dot.x - mouse.x;
+        const dy = dot.y - mouse.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        
+        let tx = dot.ox;
+        let ty = dot.oy - scrollOffset;
+        let ta = 0.11; // Idle opacity
 
-    // Física de resorte (radio pequeño, efecto sutil)
-    const THRESHOLD      = 2.0; 
-    const THRESHOLD_SQ   = THRESHOLD * THRESHOLD;
-    const REPEL_STRENGTH = 0.9; 
-    const SPRING         = 0.015; 
-    const DAMPING        = 0.93;  
+        if (mouse.active && dist < maxDist) {
+          const force = (maxDist - dist) / maxDist;
+          const angle = Math.atan2(dy, dx);
+          
+          // Magnetic push away
+          tx = (dot.ox) + Math.cos(angle) * force * 14;
+          ty = (dot.oy - scrollOffset) + Math.sin(angle) * force * 14;
+          
+          // Glow intensity scales up to 0.92 (highly visible bright red)
+          ta = 0.11 + force * 0.81;
+        }
 
-    let hasActiveMotion = false;
+        // Spring physics interpolation
+        const ax = (tx - dot.x) * 0.12;
+        const ay = (ty - dot.y) * 0.12;
+        
+        dot.vx = (dot.vx + ax) * 0.82;
+        dot.vy = (dot.vy + ay) * 0.82;
+        dot.x += dot.vx;
+        dot.y += dot.vy;
 
-    for (let i = 0; i < COUNT; i++) {
-      const idx = i * 3;
+        // Smooth alpha interpolation
+        dot.alpha += (ta - dot.alpha) * 0.12;
 
-      const ox = originalPositions[idx];
-      const oy = originalPositions[idx + 1];
+        // Frame check triggers animation shutdown when elements settle
+        const deltaX = Math.abs(dot.x - tx);
+        const deltaY = Math.abs(dot.y - ty);
+        const deltaA = Math.abs(dot.alpha - ta);
 
-      const px = pointPositions[idx];
-      const py = pointPositions[idx + 1];
-
-      let vx = velocities[idx];
-      let vy = velocities[idx + 1];
-
-      // Repulsión del cursor — Optimización matemática con distancia al cuadrado (evita Math.sqrt si no está en rango)
-      const dx = px - mx;
-      const dy = py - my;
-      const dSq = dx * dx + dy * dy;
-
-      if (dSq < THRESHOLD_SQ) {
-        const d = Math.sqrt(dSq);
-        if (d > 0.01) {
-          const force = (1.0 - d / THRESHOLD) * REPEL_STRENGTH;
-          vx += (dx / d) * force;
-          vy += (dy / d) * force;
+        if (deltaX > 0.05 || deltaY > 0.05 || deltaA > 0.01 || Math.abs(dot.vx) > 0.01 || Math.abs(dot.vy) > 0.01) {
+          needsNextFrame = true;
         }
       }
 
-      // Resorte de retorno
-      vx += (ox - px) * SPRING;
-      vy += (oy - py) * SPRING;
+      draw();
 
-      // Amortiguación
-      vx *= DAMPING;
-      vy *= DAMPING;
-
-      const newX = px + vx;
-      const newY = py + vy;
-
-      // Si el punto se está moviendo o no ha retornado por completo a su posición de reposo original
-      const distToOriginSq = (newX - ox) * (newX - ox) + (newY - oy) * (newY - oy);
-      const isMoving = (vx * vx + vy * vy) > 0.00001 || distToOriginSq > 0.0001;
-
-      if (isMoving) {
-        hasActiveMotion = true;
+      if (needsNextFrame) {
+        animationFrameId.current = requestAnimationFrame(update);
+      } else {
+        isAnimating.current = false;
       }
+    };
 
-      // Actualizar buffer de PUNTOS
-      pointPositions[idx]     = newX;
-      pointPositions[idx + 1] = newY;
-      pointPositions[idx + 2] = 0; // Plano (sin Math.sin por cuadro para máximo rendimiento)
-
-      // Actualizar buffer de LINEAS (copia separada)
-      linePositions[idx]     = newX;
-      linePositions[idx + 1] = newY;
-      linePositions[idx + 2] = 0;
-
-      // Guardar velocidades
-      velocities[idx]     = vx;
-      velocities[idx + 1] = vy;
-    }
-
-    // Solo subimos los buffers a la GPU si hay movimiento real en la malla, ahorrando enorme ancho de banda PCI-e
-    if (hasActiveMotion) {
-      if (pointsGeomRef.current?.attributes?.position) {
-        pointsGeomRef.current.attributes.position.needsUpdate = true;
+    const triggerAnimation = () => {
+      if (!isAnimating.current) {
+        isAnimating.current = true;
+        animationFrameId.current = requestAnimationFrame(update);
       }
-      if (linesGeomRef.current?.attributes?.position) {
-        linesGeomRef.current.attributes.position.needsUpdate = true;
+    };
+
+    const handleMouseMove = (e) => {
+      mouseRef.current.x = e.clientX;
+      mouseRef.current.y = e.clientY;
+      mouseRef.current.active = true;
+      triggerAnimation();
+    };
+
+    const handleMouseLeave = () => {
+      mouseRef.current.active = false;
+      triggerAnimation();
+    };
+
+    const handleScroll = () => {
+      scrollYRef.current = window.scrollY;
+      triggerAnimation();
+    };
+
+    initGrid();
+    window.addEventListener('resize', initGrid, { passive: true });
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    document.addEventListener('mouseleave', handleMouseLeave, { passive: true });
+
+    return () => {
+      window.removeEventListener('resize', initGrid);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('scroll', handleScroll);
+      document.removeEventListener('mouseleave', handleMouseLeave);
+      if (animationFrameId.current) {
+        cancelAnimationFrame(animationFrameId.current);
       }
-    }
-  });
+    };
+  }, []);
 
   return (
-    <group>
-      {/* Nodos */}
-      <points ref={pointsRef}>
-        <bufferGeometry ref={pointsGeomRef}>
-          <bufferAttribute
-            attach="attributes-position"
-            count={COUNT}
-            array={pointPositions}
-            itemSize={3}
-          />
-        </bufferGeometry>
-        <pointsMaterial
-          size={0.14}
-          color="#ef4444"
-          transparent
-          opacity={0.65}
-          sizeAttenuation
-          blending={THREE.AdditiveBlending}
-        />
-      </points>
-
-      {/* Conexiones */}
-      <lineSegments ref={linesRef}>
-        <bufferGeometry ref={linesGeomRef}>
-          <bufferAttribute
-            attach="attributes-position"
-            count={COUNT}
-            array={linePositions}
-            itemSize={3}
-          />
-          <bufferAttribute
-            attach="index"
-            count={lineIndices.length}
-            array={lineIndices}
-            itemSize={1}
-          />
-        </bufferGeometry>
-        <lineBasicMaterial
-          color="#991b1b"
-          transparent
-          opacity={0.3}
-          blending={THREE.AdditiveBlending}
-        />
-      </lineSegments>
-    </group>
-  );
-}
-
-export default function NeuralBackground() {
-  return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      width: '100vw',
-      height: '100vh',
-      zIndex: -2,
-      pointerEvents: 'none',
-      background: '#000'
-    }}>
-      <Canvas
-        camera={{ position: [0, 0, 52], fov: 62 }}
-        gl={{ antialias: false, powerPreference: 'high-performance' }}
-        frameloop="always"
-      >
-        <fog attach="fog" args={['#000', 30, 80]} />
-        <LiquidSynapses />
-      </Canvas>
-    </div>
+    <canvas
+      ref={canvasRef}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        width: '100vw',
+        height: '100vh',
+        pointerEvents: 'none',
+        zIndex: -1,
+        background: 'transparent',
+      }}
+    />
   );
 }

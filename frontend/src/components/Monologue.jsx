@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import PoeticReveal from './ui/PoeticReveal';
 import SplitTextReveal from './ui/SplitTextReveal';
+import SVGLineTracing from './ui/SVGLineTracing';
 
 const TERMINAL_LINES = [
   '> inicializando YOLOv8...',
@@ -67,7 +68,7 @@ export default function Monologue() {
       <motion.div className="monologue-orb" style={{ y: orbY }} />
 
       <div className="container">
-        <div className="thin-separator" />
+        <SVGLineTracing orientation="horizontal" />
 
         {/* Bloque 1: Filtramos el ruido — con terminal a la derecha */}
         <div className="monologue-row">
@@ -95,7 +96,7 @@ export default function Monologue() {
           <TerminalWidget />
         </div>
 
-        <div className="thin-separator" />
+        <SVGLineTracing orientation="horizontal" />
 
         {/* Bloque 2: El silencio de lo privado — con candado animado */}
         <div className="monologue-row monologue-row--reverse">
@@ -137,7 +138,7 @@ export default function Monologue() {
           </div>
         </div>
 
-        <div className="thin-separator" />
+        <SVGLineTracing orientation="horizontal" />
       </div>
     </section>
   );
