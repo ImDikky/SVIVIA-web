@@ -1,13 +1,23 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { motion, useScroll, useTransform, useMotionValueEvent, useVelocity, useSpring } from 'framer-motion';
+import { motion, useScroll, useTransform, useMotionValueEvent, useSpring } from 'framer-motion';
 
 // Sabemos que Ezgif nos generó 143 imágenes
 const FRAME_COUNT = 143;
 
-export default function Hero() {
+export default function Hero({ isLoaded }) {
   const containerRef = useRef(null);
   const canvasRef = useRef(null);
   const [images, setImages] = useState([]);
+
+  // Control de la animación inicial tras la carga
+  const [startIntro, setStartIntro] = useState(false);
+  useEffect(() => {
+    if (isLoaded) {
+      // Retardo de 250ms para que se sincronice con el desvanecimiento de la pantalla de carga
+      const t = setTimeout(() => setStartIntro(true), 250);
+      return () => clearTimeout(t);
+    }
+  }, [isLoaded]);
 
   // ==========================================
   // PRECARGA DE IMÁGENES (Para que no haya lag al hacer scroll)
@@ -17,12 +27,10 @@ export default function Hero() {
     
     for (let i = 1; i <= FRAME_COUNT; i++) {
       const img = new Image();
-      // Generamos el nombre: ezgif-frame-001.jpg, ezgif-frame-002.jpg...
       const paddedNumber = String(i).padStart(3, '0');
       img.src = `/hero-frames/ezgif-frame-${paddedNumber}.jpg`;
       
       img.onload = () => {
-        // Cuando carga la primera foto, la pintamos en el canvas como portada inicial
         if (i === 1 && canvasRef.current) {
           const ctx = canvasRef.current.getContext('2d');
           canvasRef.current.width = img.width;
@@ -32,11 +40,10 @@ export default function Hero() {
       };
       loadedImages.push(img);
     }
-    // Guardamos todas las fotos en la memoria RAM
     setImages(loadedImages);
   }, []);
 
-  // Reloj de tiempo real para la telemetría del HUD
+  // Reloj de tiempo real para la telemetría
   const [liveTime, setLiveTime] = useState("");
   useEffect(() => {
     const updateTime = () => {
@@ -56,19 +63,10 @@ export default function Hero() {
     offset: ["start start", "end end"]
   });
 
-  const scrollVelocity = useVelocity(scrollYProgress);
-  const smoothVelocity = useSpring(scrollVelocity, {
-    damping: 50,
-    stiffness: 400
-  });
-
-  // Convertimos la velocidad en un ángulo de inclinación (skew)
-  const skewX = useTransform(smoothVelocity, [-1, 1], [-20, 20]);
-
   const requestRef = useRef();
 
   // ==========================================
-  // EL SECRETO DE APPLE: CANVAS IMAGE SEQUENCE + RGB SHIFT (Distorsión)
+  // CANVAS IMAGE SEQUENCE
   // ==========================================
   useMotionValueEvent(scrollYProgress, "change", (latest) => {
     if (images.length === 0 || !canvasRef.current) return;
@@ -93,18 +91,50 @@ export default function Hero() {
     });
   });
 
-  // Animaciones de texto limpias y minimalistas
-  const textOpacity = useTransform(scrollYProgress, [0, 0.25], [1, 0]);
-  const textY = useTransform(scrollYProgress, [0, 0.25], [0, -80]);
-  const textScale = useTransform(scrollYProgress, [0, 0.25], [1, 0.95]);
-
   // ==========================================
-  // TIPOGRAFÍA REACTIVA: SPLIT & ANIMATE (Optimizado)
+  // SCROLL-LINKED SPRING TRANSFORMS (Premium Scrollytelling)
   // ==========================================
-  const title1 = "Visión";
-  const title2 = "absoluta.";
   
-  // Función para renderizar letras animadas - Optimizada para suavidad
+  // 1. Desvanecimiento y desplazamiento vertical del texto central
+  const textOpacity = useTransform(scrollYProgress, [0, 0.25], [1, 0]);
+  const textYVal = useTransform(scrollYProgress, [0, 0.25], [0, -60]);
+  const textY = useSpring(textYVal, { damping: 40, stiffness: 200 });
+  const textScaleVal = useTransform(scrollYProgress, [0, 0.25], [1, 0.96]);
+  const textScale = useSpring(textScaleVal, { damping: 40, stiffness: 200 });
+
+  // 2. Expansión del espaciado de letras de la marca (de 24px a 56px para mayor elegancia)
+  const letterSpacingVal = useTransform(scrollYProgress, [0, 0.25], [24, 56]);
+  const letterSpacingSpring = useSpring(letterSpacingVal, { damping: 40, stiffness: 180 });
+  const letterSpacing = useTransform(letterSpacingSpring, (v) => `${v}px`);
+
+  // 3. Zoom cinemático lento del fondo (scale 1.02 a 1.12)
+  const canvasScaleVal = useTransform(scrollYProgress, [0, 0.25], [1.02, 1.12]);
+  const canvasScale = useSpring(canvasScaleVal, { damping: 50, stiffness: 300 });
+
+  // 4. Parallax de las tarjetas laterales: VISIBLES AL INICIO (scroll 0) y se desvanecen al scrollear
+  const cardLeftXVal = useTransform(scrollYProgress, [0, 0.10, 0.22], [0, 0, -80]);
+  const cardLeftX = useSpring(cardLeftXVal, { damping: 40, stiffness: 200 });
+  
+  const cardLeftYVal = useTransform(scrollYProgress, [0, 0.10, 0.22], [0, 0, -40]);
+  const cardLeftY = useSpring(cardLeftYVal, { damping: 40, stiffness: 200 });
+  
+  const cardLeftOpacity = useTransform(scrollYProgress, [0, 0.10, 0.20], [1, 1, 0]);
+
+  const cardRightXVal = useTransform(scrollYProgress, [0, 0.10, 0.22], [0, 0, 80]);
+  const cardRightX = useSpring(cardRightXVal, { damping: 40, stiffness: 200 });
+  
+  const cardRightYVal = useTransform(scrollYProgress, [0, 0.10, 0.22], [0, 0, -40]);
+  const cardRightY = useSpring(cardRightYVal, { damping: 40, stiffness: 200 });
+  
+  const cardRightOpacity = useTransform(scrollYProgress, [0, 0.10, 0.20], [1, 1, 0]);
+
+  // 5. Escala y opacidad del anillo del radar de fondo
+  const ringScaleVal = useTransform(scrollYProgress, [0, 0.25], [1.0, 0.85]);
+  const ringScale = useSpring(ringScaleVal, { damping: 45, stiffness: 200 });
+  const ringOpacity = useTransform(scrollYProgress, [0, 0.20], [0.18, 0]);
+
+  const title = "SVIVIA";
+
   const renderLetters = (text) => {
     return text.split("").map((char, i) => (
       <motion.span
@@ -112,14 +142,14 @@ export default function Hero() {
         style={{ 
           display: 'inline-block', 
           whiteSpace: char === " " ? "pre" : "normal",
-          willChange: 'transform, opacity' // Optimizamos para la GPU
+          willChange: 'transform, opacity'
         }}
-        initial={{ opacity: 0, y: '100%' }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, y: '80%' }}
+        animate={startIntro ? { opacity: 1, y: 0 } : { opacity: 0, y: '80%' }}
         transition={{ 
-          duration: 0.8, 
-          delay: 0.2 + i * 0.03, // Stagger más rápido
-          ease: [0.33, 1, 0.68, 1] // Ease Out Quart: súper suave
+          duration: 0.9, 
+          delay: 0.15 + i * 0.06,
+          ease: [0.33, 1, 0.68, 1]
         }}
       >
         {char}
@@ -133,69 +163,141 @@ export default function Hero() {
       {/* CONTENEDOR STICKY */}
       <div style={{ position: 'sticky', top: 0, height: '100vh', width: '100%', overflow: 'hidden' }}>
         
-        {/* EL LIENZO MÁGICO (Sustituye al Video) */}
-        <canvas 
-          ref={canvasRef}
-          style={{ 
-             width: '100%', height: '100%', 
-             objectFit: 'cover', 
-             opacity: 0.65 
-          }}
-        />
+        {/* Envoltura del canvas para el fade-in de carga */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={startIntro ? { opacity: 1 } : { opacity: 0 }}
+          transition={{ duration: 1.8, ease: "easeOut" }}
+          style={{ width: '100%', height: '100%', position: 'absolute', inset: 0, zIndex: 1 }}
+        >
+          {/* EL LIENZO MÁGICO (Sustituye al Video) */}
+          <motion.canvas 
+            ref={canvasRef}
+            style={{ 
+               width: '100%', height: '100%', 
+               objectFit: 'cover', 
+               opacity: 0.22,
+               filter: 'brightness(0.7) contrast(1.15)',
+               scale: canvasScale
+            }}
+          />
+        </motion.div>
         
-        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle, transparent 25%, #000 95%)' }} />
+        {/* Máscaras cinemáticas de profundidad */}
+        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at center, rgba(0,0,0,0.3) 0%, #000000 85%)', pointerEvents: 'none', zIndex: 2 }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 50%, #000000 100%)', pointerEvents: 'none', zIndex: 2 }} />
 
-        {/* Capa de HUD de Cámara / Interfaz Táctica (Fades on scroll) */}
+        {/* Retícula Táctica de Fondo (Radar Concentrico) */}
         <motion.div
           style={{
             position: 'absolute',
-            inset: 0,
+            top: '50%',
+            left: '50%',
+            width: '650px',
+            height: '650px',
+            x: '-50%',
+            y: '-50%',
+            scale: ringScale,
+            opacity: ringOpacity,
             pointerEvents: 'none',
-            opacity: textOpacity,
-            zIndex: 4
+            zIndex: 2
           }}
         >
-          {/* L-brackets en las esquinas */}
-          <div className="hud-bracket hud-bracket--tl" />
-          <div className="hud-bracket hud-bracket--tr" />
-          <div className="hud-bracket hud-bracket--bl" />
-          <div className="hud-bracket hud-bracket--br" />
+          <svg style={{ width: '100%', height: '100%' }} viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="46" fill="none" stroke="#ef4444" strokeWidth="0.1" strokeDasharray="1 3" />
+            <circle cx="50" cy="50" r="36" fill="none" stroke="#ef4444" strokeWidth="0.08" />
+            <circle cx="50" cy="50" r="22" fill="none" stroke="#ef4444" strokeWidth="0.05" strokeDasharray="2 2" />
+            <g style={{ transformOrigin: '50px 50px', animation: 'spin-clockwise 40s infinite linear' }}>
+              <line x1="50" y1="4" x2="50" y2="8" stroke="#ef4444" strokeWidth="0.15" />
+              <line x1="50" y1="92" x2="50" y2="96" stroke="#ef4444" strokeWidth="0.15" />
+              <line x1="4" y1="50" x2="8" y2="50" stroke="#ef4444" strokeWidth="0.15" />
+              <line x1="92" y1="50" x2="96" y2="50" stroke="#ef4444" strokeWidth="0.15" />
+            </g>
+          </svg>
+        </motion.div>
 
-          {/* Línea de escaneo láser */}
-          <div className="hud-laser-scanner" />
+        {/* TARJETA PARALLAX IZQUIERDA */}
+        <motion.div
+          style={{
+            position: 'absolute',
+            left: '8%',
+            top: '54%',
+            width: '290px',
+            x: cardLeftX,
+            y: cardLeftY,
+            opacity: cardLeftOpacity,
+            pointerEvents: 'none',
+            zIndex: 10
+          }}
+        >
+          <motion.div
+            initial={{ opacity: 0, x: -50 }}
+            animate={startIntro ? { opacity: 1, x: 0 } : { opacity: 0, x: -50 }}
+            transition={{ duration: 1.2, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            style={{
+              background: 'rgba(255, 255, 255, 0.01)',
+              border: '1px solid rgba(255, 255, 255, 0.07)',
+              borderRadius: '8px',
+              padding: '20px',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '8px'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#ef4444' }} />
+              <span style={{ fontSize: '9px', fontFamily: 'monospace', color: '#ef4444', letterSpacing: '2px', fontWeight: 'bold' }}>
+                [ SECURE NODE // LOCAL NPU ]
+              </span>
+            </div>
+            <p style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.65)', lineHeight: '1.65', margin: 0, fontWeight: '300', fontFamily: 'var(--font-sans)' }}>
+              Inferencia en el origen a 60 FPS. Procesamiento paralelo local con latencia ultrabaja de 4.2ms.
+            </p>
+          </motion.div>
+        </motion.div>
 
-          {/* Indicador REC y Telemetría */}
-          <div className="hud-panel hud-panel--top-left">
-            <span className="hud-rec-dot" />
-            <span className="hud-text">REC [CAM_01_FEED] // SERVIDOR_LOCAL_NEURAL</span>
-          </div>
-
-          <div className="hud-panel hud-panel--top-right">
-            <span className="hud-text text-green">{liveTime}</span>
-            <span className="hud-divider">|</span>
-            <span className="hud-text">LATENCY: ~4.5ms</span>
-            <span className="hud-divider">|</span>
-            <span className="hud-text">FPS: 60</span>
-          </div>
-
-          <div className="hud-panel hud-panel--bottom-left">
-            <span className="hud-text">TARGET: HUMANO_DETECTADO</span>
-            <span className="hud-divider">|</span>
-            <span className="hud-text">IA ENGINE: YOLO_LOCAL_v8</span>
-          </div>
-
-          <div className="hud-panel hud-panel--bottom-right">
-            <span className="hud-text">SEGURIDAD: 100% PRIVADO</span>
-            <span className="hud-divider">|</span>
-            <span className="hud-text">NO CLOUD METRICS</span>
-          </div>
-
-          {/* Retícula de escaneo en el centro */}
-          <div className="hud-center-crosshair">
-            <div className="hud-crosshair-ring" />
-            <div className="hud-crosshair-lines" />
-            <div className="hud-crosshair-tag">SYS_SCAN: ACTIVE</div>
-          </div>
+        {/* TARJETA PARALLAX DERECHA */}
+        <motion.div
+          style={{
+            position: 'absolute',
+            right: '8%',
+            top: '54%',
+            width: '290px',
+            x: cardRightX,
+            y: cardRightY,
+            opacity: cardRightOpacity,
+            pointerEvents: 'none',
+            zIndex: 10
+          }}
+        >
+          <motion.div
+            initial={{ opacity: 0, x: 50 }}
+            animate={startIntro ? { opacity: 1, x: 0 } : { opacity: 0, x: 50 }}
+            transition={{ duration: 1.2, delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            style={{
+              background: 'rgba(255, 255, 255, 0.01)',
+              border: '1px solid rgba(255, 255, 255, 0.07)',
+              borderRadius: '8px',
+              padding: '20px',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '8px'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#ef4444' }} />
+              <span style={{ fontSize: '9px', fontFamily: 'monospace', color: '#ef4444', letterSpacing: '2px', fontWeight: 'bold' }}>
+                [ OFFLINE BY DESIGN // ZERO CLOUD ]
+              </span>
+            </div>
+            <p style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.65)', lineHeight: '1.65', margin: 0, fontWeight: '300', fontFamily: 'var(--font-sans)' }}>
+              Privacidad absoluta por arquitectura. Base de datos SQLite local cifrada, inmune a caídas de red o WAN.
+            </p>
+          </motion.div>
         </motion.div>
 
         {/* Textos Reactivos (Cinemáticos y con alto contraste) */}
@@ -204,229 +306,74 @@ export default function Hero() {
             position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             opacity: textOpacity, y: textY, scale: textScale,
-            skewX: skewX, // Inclinación por velocidad
             zIndex: 5
           }}
         >
-          <h1 className="poetic-title-huge" style={{ textAlign: 'center', fontSize: '7.5vw', lineHeight: 1.05, willChange: 'transform', letterSpacing: '-0.02em' }}>
-            <div style={{ overflow: 'hidden', color: '#ffffff', textShadow: '0 0 20px rgba(255,255,255,0.45)' }}>
-              {renderLetters(title1)}
-            </div>
-            <div style={{ overflow: 'hidden', fontStyle: 'italic', color: '#ef4444', textShadow: '0 0 20px rgba(239, 68, 68, 0.65)' }}>
-              {renderLetters(title2)}
+          <motion.span 
+            initial={{ opacity: 0, y: -10 }}
+            animate={startIntro ? { opacity: 0.85, y: 0 } : { opacity: 0, y: -10 }}
+            transition={{ duration: 0.8, delay: 0.3 }}
+            style={{ 
+              fontFamily: 'monospace', 
+              fontSize: '0.75rem', 
+              color: '#ef4444', 
+              letterSpacing: '5px', 
+              textTransform: 'uppercase',
+              marginBottom: '1.2rem'
+            }}
+          >
+            // SISTEMA NEURAL OFFLINE
+          </motion.span>
+
+          <h1 className="poetic-title-huge" style={{ textAlign: 'center', fontSize: '7.5vw', lineHeight: 1.05, willChange: 'transform', letterSpacing: letterSpacing, fontWeight: '800', margin: '0 0 2rem 0', textTransform: 'uppercase' }}>
+            <div style={{ overflow: 'hidden', color: '#ef4444', textShadow: '0 0 20px rgba(239, 68, 68, 0.4), 0 0 4px rgba(239, 68, 68, 0.2)' }}>
+              {renderLetters(title)}
             </div>
           </h1>
           
           <motion.div
-            style={{ marginTop: '2.2rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.8rem' }}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1.2, delay: 1.2, ease: "easeOut" }}
+            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.2rem', padding: '0 20px' }}
+            initial={{ opacity: 0, y: 15 }}
+            animate={startIntro ? { opacity: 1, y: 0 } : { opacity: 0, y: 15 }}
+            transition={{ duration: 1.0, delay: 0.9, ease: "easeOut" }}
           >
-            <span style={{ 
-              fontFamily: 'monospace', 
-              fontSize: '0.75rem', 
-              color: '#ef4444', 
-              letterSpacing: '4px', 
-              textTransform: 'uppercase',
-              background: 'rgba(239, 68, 68, 0.06)',
-              padding: '5px 14px',
-              border: '1px solid rgba(239, 68, 68, 0.25)',
-              borderRadius: '4px',
-              textShadow: '0 0 8px rgba(239, 68, 68, 0.3)'
-            }}>
-              [ PROCESAMIENTO AUTÓNOMO EN EL BORDE // SIN NUBE ]
-            </span>
             <p 
-              className="poetic-subtitle" 
               style={{ 
                 textAlign: 'center', 
-                maxWidth: '750px', 
-                fontSize: '1.25rem', 
-                lineHeight: '1.65',
-                color: 'rgba(255, 255, 255, 0.88)',
-                textShadow: '0 2px 12px rgba(0,0,0,0.95)',
-                fontWeight: '300',
-                margin: 0
+                maxWidth: '700px', 
+                fontSize: '1.5rem', 
+                lineHeight: '1.5',
+                color: '#ffffff',
+                fontWeight: '400',
+                margin: 0,
+                letterSpacing: '-0.01em',
+                textShadow: '0 2px 10px rgba(0,0,0,0.9)'
               }}
             >
-              La inteligencia artificial no pertenece a la nube.
+              La videovigilancia inteligente ya no pertenece a la nube.
+            </p>
+            <p
+              style={{ 
+                textAlign: 'center', 
+                maxWidth: '620px', 
+                fontSize: '1rem', 
+                lineHeight: '1.7',
+                color: 'rgba(255, 255, 255, 0.6)',
+                fontWeight: '300',
+                margin: 0,
+                textShadow: '0 2px 8px rgba(0,0,0,0.9)'
+              }}
+            >
+              Tus cámaras procesan, analizan y almacenan en el origen. 
               <br/>
-              <span style={{ color: '#ffffff', fontWeight: '400' }}>Reclama tu privacidad.</span> Transforma tus cámaras de seguridad en centinelas neuronales con Edge AI 100% local.
+              <span style={{ color: '#ef4444', fontWeight: '400' }}>Sin servidores externos. Cero filtraciones.</span>
             </p>
           </motion.div>
         </motion.div>
 
       </div>
 
-      {/* Estilos del HUD Encapsulados */}
       <style>{`
-        /* Visor de Cámara brackets */
-        .hud-bracket {
-          position: absolute;
-          width: 24px;
-          height: 24px;
-          border: 2px solid rgba(239, 68, 68, 0.35);
-          pointer-events: none;
-          z-index: 5;
-        }
-        .hud-bracket--tl {
-          top: 40px;
-          left: 40px;
-          border-right: 0;
-          border-bottom: 0;
-        }
-        .hud-bracket--tr {
-          top: 40px;
-          right: 40px;
-          border-left: 0;
-          border-bottom: 0;
-        }
-        .hud-bracket--bl {
-          bottom: 40px;
-          left: 40px;
-          border-right: 0;
-          border-top: 0;
-        }
-        .hud-bracket--br {
-          bottom: 40px;
-          right: 40px;
-          border-left: 0;
-          border-top: 0;
-        }
-
-        /* Línea de Escaneo Láser */
-        .hud-laser-scanner {
-          position: absolute;
-          left: 0;
-          width: 100%;
-          height: 2px;
-          background: linear-gradient(90deg, transparent, rgba(239, 68, 68, 0.45) 50%, transparent);
-          box-shadow: 0 0 10px rgba(239, 68, 68, 0.35);
-          z-index: 3;
-          pointer-events: none;
-          animation: laser-scan 5s infinite ease-in-out;
-        }
-        @keyframes laser-scan {
-          0% { top: 0%; opacity: 0; }
-          10% { opacity: 0.7; }
-          90% { opacity: 0.7; }
-          100% { top: 100%; opacity: 0; }
-        }
-
-        /* Paneles del HUD */
-        .hud-panel {
-          position: absolute;
-          font-family: monospace;
-          font-size: 0.72rem;
-          color: rgba(255, 255, 255, 0.45);
-          letter-spacing: 1.5px;
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          pointer-events: none;
-          background: rgba(0, 0, 0, 0.4);
-          padding: 6px 14px;
-          border: 1px solid rgba(255, 255, 255, 0.06);
-          border-radius: 4px;
-          backdrop-filter: blur(4px);
-          z-index: 5;
-        }
-        .hud-panel--top-left {
-          top: 40px;
-          left: 80px;
-        }
-        .hud-panel--top-right {
-          top: 40px;
-          right: 80px;
-        }
-        .hud-panel--bottom-left {
-          bottom: 40px;
-          left: 80px;
-        }
-        .hud-panel--bottom-right {
-          bottom: 40px;
-          right: 80px;
-        }
-
-        .hud-rec-dot {
-          width: 8px;
-          height: 8px;
-          border-radius: 50%;
-          background: #ef4444;
-          box-shadow: 0 0 8px #ef4444;
-          animation: blink 1s infinite alternate;
-        }
-        @keyframes blink {
-          0% { opacity: 0.2; }
-          100% { opacity: 1; }
-        }
-
-        .hud-divider {
-          color: rgba(239, 68, 68, 0.35);
-        }
-        .hud-text {
-          text-shadow: 0 1px 4px rgba(0,0,0,0.5);
-        }
-        .hud-text.text-green {
-          color: #10b981;
-          text-shadow: 0 0 6px rgba(16, 185, 129, 0.3);
-        }
-
-        /* Retícula de Escaneo Central */
-        .hud-center-crosshair {
-          position: absolute;
-          top: 48%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          pointer-events: none;
-          opacity: 0.2;
-          z-index: 3;
-        }
-        .hud-crosshair-ring {
-          width: 90px;
-          height: 90px;
-          border: 1px dashed rgba(239, 68, 68, 0.5);
-          border-radius: 50%;
-          animation: spin-clockwise 20s infinite linear;
-        }
-        .hud-crosshair-lines {
-          position: absolute;
-          width: 130px;
-          height: 130px;
-          pointer-events: none;
-        }
-        .hud-crosshair-lines::before,
-        .hud-crosshair-lines::after {
-          content: '';
-          position: absolute;
-          background: rgba(239, 68, 68, 0.4);
-        }
-        .hud-crosshair-lines::before {
-          top: 50%;
-          left: 0;
-          width: 100%;
-          height: 1px;
-        }
-        .hud-crosshair-lines::after {
-          left: 50%;
-          top: 0;
-          width: 1px;
-          height: 100%;
-        }
-        .hud-crosshair-tag {
-          margin-top: 12px;
-          font-family: monospace;
-          font-size: 0.55rem;
-          letter-spacing: 2px;
-          color: rgba(239, 68, 68, 0.5);
-          text-transform: uppercase;
-        }
-
         @keyframes spin-clockwise {
           0% { transform: rotate(0deg); }
           100% { transform: rotate(360deg); }

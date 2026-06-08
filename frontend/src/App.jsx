@@ -65,7 +65,7 @@ function App() {
           <motion.div className="ambient-glow" style={{ scale: glowScale, opacity: glowOpacity, y: glowY1 }}></motion.div>
           <motion.div className="ambient-glow secondary" style={{ scale: glowScale, opacity: glowOpacity, y: glowY2 }}></motion.div>
           
-          <div id="hero"><Hero /></div>
+          <div id="hero"><Hero isLoaded={loaded} /></div>
           <SVGLineTracing orientation="horizontal" color="rgba(239, 68, 68, 0.12)" />
           
           <div id="monologue"><Monologue /></div>
