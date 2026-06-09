@@ -131,7 +131,7 @@ export default function Hero({ isLoaded }) {
   // 5. Escala y opacidad del anillo del radar de fondo
   const ringScaleVal = useTransform(scrollYProgress, [0, 0.25], [1.0, 0.85]);
   const ringScale = useSpring(ringScaleVal, { damping: 45, stiffness: 200 });
-  const ringOpacity = useTransform(scrollYProgress, [0, 0.20], [0.18, 0]);
+  const ringOpacity = useTransform(scrollYProgress, [0, 0.20], [0.26, 0]);
 
   const title = "SVIVIA";
 
@@ -145,11 +145,23 @@ export default function Hero({ isLoaded }) {
           willChange: 'transform, opacity'
         }}
         initial={{ opacity: 0, y: '80%' }}
-        animate={startIntro ? { opacity: 1, y: 0 } : { opacity: 0, y: '80%' }}
+        animate={startIntro ? { 
+          opacity: [0, 1, 0.3, 0.95, 0.2, 1],
+          y: 0,
+          textShadow: [
+            '0 0 0px rgba(239, 68, 68, 0)',
+            '0 0 25px rgba(239, 68, 68, 0.9)',
+            '0 0 4px rgba(239, 68, 68, 0.2)',
+            '0 0 20px rgba(239, 68, 68, 0.8)',
+            '0 0 6px rgba(239, 68, 68, 0.3)',
+            '0 0 15px rgba(239, 68, 68, 0.4)'
+          ]
+        } : { opacity: 0, y: '80%' }}
         transition={{ 
-          duration: 0.9, 
-          delay: 0.15 + i * 0.06,
-          ease: [0.33, 1, 0.68, 1]
+          duration: 0.7, 
+          delay: 0.15 + i * 0.05,
+          times: [0, 0.15, 0.3, 0.45, 0.6, 1],
+          ease: "easeInOut"
         }}
       >
         {char}
@@ -232,8 +244,32 @@ export default function Hero({ isLoaded }) {
         >
           <motion.div
             initial={{ opacity: 0, x: -50 }}
-            animate={startIntro ? { opacity: 1, x: 0 } : { opacity: 0, x: -50 }}
-            transition={{ duration: 1.2, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            animate={startIntro ? { 
+              opacity: [0, 1, 0.2, 0.95, 0.15, 1],
+              x: 0,
+              boxShadow: [
+                '0 0 0px rgba(239, 68, 68, 0)',
+                '0 0 20px rgba(239, 68, 68, 0.5)',
+                '0 0 2px rgba(239, 68, 68, 0.1)',
+                '0 0 15px rgba(239, 68, 68, 0.4)',
+                '0 0 4px rgba(239, 68, 68, 0.2)',
+                '0 0 0px rgba(239, 68, 68, 0)'
+              ],
+              borderColor: [
+                'rgba(255, 255, 255, 0.07)',
+                'rgba(239, 68, 68, 0.6)',
+                'rgba(255, 255, 255, 0.1)',
+                'rgba(239, 68, 68, 0.5)',
+                'rgba(255, 255, 255, 0.15)',
+                'rgba(255, 255, 255, 0.07)'
+              ]
+            } : { opacity: 0, x: -50 }}
+            transition={{ 
+              duration: 0.8, 
+              delay: 0.5,
+              times: [0, 0.15, 0.3, 0.45, 0.6, 1],
+              ease: "easeOut"
+            }}
             style={{
               background: 'rgba(255, 255, 255, 0.01)',
               border: '1px solid rgba(255, 255, 255, 0.07)',
@@ -274,8 +310,32 @@ export default function Hero({ isLoaded }) {
         >
           <motion.div
             initial={{ opacity: 0, x: 50 }}
-            animate={startIntro ? { opacity: 1, x: 0 } : { opacity: 0, x: 50 }}
-            transition={{ duration: 1.2, delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            animate={startIntro ? { 
+              opacity: [0, 1, 0.2, 0.95, 0.15, 1],
+              x: 0,
+              boxShadow: [
+                '0 0 0px rgba(239, 68, 68, 0)',
+                '0 0 20px rgba(239, 68, 68, 0.5)',
+                '0 0 2px rgba(239, 68, 68, 0.1)',
+                '0 0 15px rgba(239, 68, 68, 0.4)',
+                '0 0 4px rgba(239, 68, 68, 0.2)',
+                '0 0 0px rgba(239, 68, 68, 0)'
+              ],
+              borderColor: [
+                'rgba(255, 255, 255, 0.07)',
+                'rgba(239, 68, 68, 0.6)',
+                'rgba(255, 255, 255, 0.1)',
+                'rgba(239, 68, 68, 0.5)',
+                'rgba(255, 255, 255, 0.15)',
+                'rgba(255, 255, 255, 0.07)'
+              ]
+            } : { opacity: 0, x: 50 }}
+            transition={{ 
+              duration: 0.8, 
+              delay: 0.6,
+              times: [0, 0.15, 0.3, 0.45, 0.6, 1],
+              ease: "easeOut"
+            }}
             style={{
               background: 'rgba(255, 255, 255, 0.01)',
               border: '1px solid rgba(255, 255, 255, 0.07)',
